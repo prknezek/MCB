@@ -3,6 +3,10 @@
 #include <iostream>
 #include <string>
 
+// FEN debug positions
+char start_position[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+char tricky_position[] = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
+
 using std::cout;
 using std::endl;
 using std::string;
@@ -20,15 +24,33 @@ enum pieces {e, P, N, B, R, Q, K, p, n, b, r, q, k, o};
 
 // square encoding
 enum squares {
-    a8 = 0, b8, c8, d8, e8, f8, g8, h8,
-    a7 = 16, b7, c7, d7, e7, f7, g7, h7,
-    a6 = 32, b6, c6, d6, e6, f6, g6, h6,
-    a5 = 48, b5, c5, d5, e5, f5, g5, h5,
-    a4 = 64, b4, c4, d4, e4, f4, g4, h4,
-    a3 = 80, b3, c3, d3, e3, f3, g3, h3,
-    a2 = 96, b2, c2, d2, e2, f2, g2, h2,
-    a1 = 112, b1, c1, d1, e1, f1, g1, h1
+    a8 = 0,   b8, c8, d8, e8, f8, g8, h8,
+    a7 = 16,  b7, c7, d7, e7, f7, g7, h7,
+    a6 = 32,  b6, c6, d6, e6, f6, g6, h6,
+    a5 = 48,  b5, c5, d5, e5, f5, g5, h5,
+    a4 = 64,  b4, c4, d4, e4, f4, g4, h4,
+    a3 = 80,  b3, c3, d3, e3, f3, g3, h3,
+    a2 = 96,  b2, c2, d2, e2, f2, g2, h2,
+    a1 = 112, b1, c1, d1, e1, f1, g1, h1, no_sq
 };
+
+// castling binary representation
+//  bin  dec
+// 0001   1   white king can castle king side
+// 0010   2   white king can castle queen side
+// 0100   4   black king can castle king side
+// 1000   8   black king can castle queen side
+//
+// examples
+// 1111       both sides can castle both directions
+// 1001       black king => queen side
+//            white king => king side
+
+// castling rights
+enum castling {KC = 1, QC = 2, kc = 4, qc = 8};
+
+// sides to move
+enum sides {white, black};
 
 // ascii pieces
 char ascii_pieces[] = ".PNBRQKpnbrqko";
@@ -69,6 +91,15 @@ int board[128] = {
     R, N, B, Q, K, B, N, R,  o, o, o, o, o, o, o, o
 };
 
+// side to move
+int side = white;
+
+// enpassant square
+int enpassant = no_sq;
+
+// castling rights (dec 15 => bin 1111 => both sides can castle both dirs)
+int castle = 15;
+
 // convert board square indexes to coords
 string square_to_coords[] = {
     "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8", "i8", "j8", "k8", "l8", "m8", "n8", "o8", "p8",
@@ -107,13 +138,114 @@ void print_board() {
         cout << endl;
     }
     // print files
-    cout << "\n   a  b  c  d  e  f  g  h\n";
+    cout << "\n   a  b  c  d  e  f  g  h\n\n";
+
+    // print board stats
+    cout << "---------------------------" << endl;
+    cout << " Side: " << ((side == white) ? "white" : "black") << endl;
+    cout << " Castling: " << ((castle & KC) ? 'K' : '-')
+                          << ((castle & QC) ? 'Q' : '-')
+                          << ((castle & kc) ? 'k' : '-')
+                          << ((castle & qc) ? 'q' : '-') << endl;
+    cout << " Enpassant: " << ((enpassant == no_sq) ? "-" : square_to_coords[enpassant]) << endl;
+}
+
+// reset board
+void reset_board() {
+    for (int rank = 0; rank < 8; ++rank) {
+        for (int file = 0; file < 16; ++file) {
+            // init square
+            int square = rank * 16 + file;
+
+            // if square is on board
+            if (!(square & 0x88)) {
+                // reset current board square
+                board[square] = e;
+            }
+        }
+    }
+    // reset stats
+    side = -1;
+    castle = 0;
+    enpassant = no_sq;
+}
+
+// parse FEN
+void parse_fen(char *fen) {
+    // reset board
+    reset_board();
+
+    for (int rank = 0; rank < 8; ++rank) {
+        for (int file = 0; file < 16; ++file) {
+            // init square
+            int square = rank * 16 + file;
+
+            // if square is on board
+            if (!(square & 0x88)) {
+                // match pieces
+                if ((*fen >= 'a' && *fen <= 'z') || (*fen >= 'A' && *fen <= 'Z')) {
+                    // set the piece on the board
+                    board[square] = char_pieces[*fen];
+
+                    // increment FEN pointer to next char
+                    *fen++;
+
+                    // cout << "square: " << square_to_coords[square] << " | current FEN char: " << *fen << endl;
+                }
+                // match empty squares
+                if (*fen >= '0' && *fen <= '9') {
+                    // calculate offset
+                    int offset = *fen - '0';
+
+                    // decrement file on empty squares
+                    if (board[square] == e) {
+                        file--;
+                    }
+
+                    // skip empty squares
+                    file += offset;
+
+                    *fen++;
+                }
+                // match end of rank
+                if (*fen == '/') {
+                    *fen++;
+                }
+            }
+        }
+    }
+    // increment FEN pointer to parse side to move
+    *fen++;
+    side = (*fen == 'w') ? white : black;
+    // increment FEN pointer to parse castling rights
+    fen += 2;
+    while (*fen != ' ') {
+        switch(*fen) {
+            case 'K' : castle |= KC; break;
+            case 'Q' : castle |= QC; break;
+            case 'k' : castle |= kc; break;
+            case 'q' : castle |= qc; break;
+            case '-' : break;
+        }
+        *fen++;
+    }
+    // increment FEN pointer to parse enpassant square
+    *fen++;
+    if (*fen != '-') {
+        int file = fen[0] - 'a';
+        int rank = 8 - (fen[1] - '0');
+        // get enpassant square board index
+        enpassant = rank * 16 + file;
+    } else {
+        enpassant = no_sq;
+    }
 }
 
 // main driver
 int main() {
     initialize_char_pieces();
     
+    parse_fen(start_position);
     print_board();
     return 0;
 }
