@@ -56,7 +56,7 @@ enum sides {white, black};
 char ascii_pieces[] = ".PNBRQKpnbrqko";
 
 // unicode pieces
-string unicode_pieces[] = {". ", "♙", "♘", "♗", "♖", "♕", "♔", "♟︎", "♞", "♝", "♜", "♛", "♚"};
+string unicode_pieces[] = {". ", "♟︎", "♞", "♝", "♜", "♛", "♚", "♙", "♘", "♗", "♖", "♕", "♔"};
 
 // encode ascii pieces
 int char_pieces[128];
