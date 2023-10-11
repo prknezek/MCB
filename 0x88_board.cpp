@@ -112,6 +112,12 @@ string square_to_coords[] = {
     "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1", "i1", "j1", "k1", "l1", "m1", "n1", "o1", "p1"
 };
 
+// piece move offsets (offset to end squares from starting square)
+int knight_offsets[8] = {33, 31, 18, 14, -33, -31, -18, -14};
+int bishop_offsets[4] = {15, 17, -15, -17};
+int rook_offsets[4] = {16, -16, 1, -1};
+int king_offsets[8] = {16, -16, 1, -1, 15, 17, -15, -17};
+
 // print board
 void print_board() {
     // print indentation
@@ -168,6 +174,37 @@ void reset_board() {
     side = -1;
     castle = 0;
     enpassant = no_sq;
+}
+
+// is square attacked
+int is_square_attacked(int square, int side) {
+    return 1;
+}
+
+void print_attacked_squares(int side) {
+    // print indentation
+    cout << endl;
+
+    // loop over board ranks
+    for (int rank = 0; rank < 8; ++rank) {
+        for (int file = 0; file < 16; ++file) {
+            // init square
+            int square = rank * 16 + file;
+
+            // print ranks
+            if (file == 0) {
+                cout << 8 - rank << "  ";
+            }
+
+            // if square is on board
+            if (!(square & 0x88)) {
+                cout << (is_square_attacked(square, side) ? "x " : ". ");
+            }
+        }
+        // print new line every time new rank is encountered
+        cout << endl;
+    }
+    cout << "\n   a b c d e f g h\n\n";
 }
 
 // parse FEN
@@ -244,8 +281,9 @@ void parse_fen(char *fen) {
 // main driver
 int main() {
     initialize_char_pieces();
-    
-    parse_fen(start_position);
+    char fen[] = "8/8/8/3N4/8/8/8/8 w KQkq - 0 1";
+    parse_fen(fen);
     print_board();
+    print_attacked_squares(white);
     return 0;
 }
