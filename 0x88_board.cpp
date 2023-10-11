@@ -176,14 +176,37 @@ void reset_board() {
     enpassant = no_sq;
 }
 
-// is square attacked
+// returns if the given square is attacked
 int is_square_attacked(int square, int side) {
-    return 1;
+    // pawn attacks
+    if (side == white) {
+        // make sure target square is on board
+        // left pawn attack
+        if (!((square + 17) & 0x88) && (board[square + 17] == P)) {
+            return 1;
+        }
+        // right pawn attack
+        if (!((square + 15) & 0x88) && (board[square + 15] == P)) {
+            return 1;
+        }
+    } else {
+        // make sure target square is on board
+        // right pawn attack
+        if (!((square - 17) & 0x88) && (board[square - 17] == p)) {
+            return 1;
+        }
+        // left pawn attack
+        if (!((square - 15) & 0x88) && (board[square - 15] == p)) {
+            return 1;
+        }
+    }
+    return 0;
 }
 
 void print_attacked_squares(int side) {
     // print indentation
     cout << endl;
+    cout << "   Attacking side: " << (side == white ? "white" : "black") << endl;
 
     // loop over board ranks
     for (int rank = 0; rank < 8; ++rank) {
@@ -281,7 +304,7 @@ void parse_fen(char *fen) {
 // main driver
 int main() {
     initialize_char_pieces();
-    char fen[] = "8/8/8/3N4/8/8/8/8 w KQkq - 0 1";
+    char fen[] = "8/8/8/p7/3p4/8/7p/8 w KQkq - 0 1";
     parse_fen(fen);
     print_board();
     print_attacked_squares(white);
