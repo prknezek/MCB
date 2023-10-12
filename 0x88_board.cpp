@@ -180,7 +180,7 @@ void reset_board() {
 int is_square_attacked(int square, int side) {
     // pawn attacks
     if (side == white) {
-        // make sure target square is on board
+        // if target square is on board and white pawn
         // left pawn attack
         if (!((square + 17) & 0x88) && (board[square + 17] == P)) {
             return 1;
@@ -190,7 +190,7 @@ int is_square_attacked(int square, int side) {
             return 1;
         }
     } else {
-        // make sure target square is on board
+        // if target square is on board and black pawn
         // right pawn attack
         if (!((square - 17) & 0x88) && (board[square - 17] == p)) {
             return 1;
@@ -200,6 +200,87 @@ int is_square_attacked(int square, int side) {
             return 1;
         }
     }
+
+    // knight attacks
+    for (int i = 0; i < 8; ++i) {
+        int target_square = square + knight_offsets[i];
+
+        // lookup target piece
+        int target_piece = board[target_square];
+
+        // if target square is on board
+        if (!(target_square & 0x88)) {
+            // determine if white or black knight is targeting a square (depending on turn)
+            if (side == white ? target_piece == N : target_piece == n) {
+                return 1;
+            }
+        }
+    }
+
+    // king attacks
+    for (int i = 0; i < 8; ++i) {
+        int target_square = square + king_offsets[i];
+
+        // lookup target piece
+        int target_piece = board[target_square];
+
+        // if target square is on board
+        if (!(target_square & 0x88)) {
+            // determine if white or black king is targeting a square (depending on turn)
+            if (side == white ? target_piece == K : target_piece == k) {
+                return 1;
+            }
+        }
+    }
+
+    // bishop and queen diagonal attacks
+    for (int i = 0; i < 4; ++i) {
+        int target_square = square + bishop_offsets[i];
+
+        // loop over attack ray
+        while (!(target_square & 0x88)) {
+            int target_piece = board[target_square];
+
+            // determine if white or black bishop or queen is targeting a square (depending on turn)
+            if (side == white ? (target_piece == B || target_piece == Q) :
+                                (target_piece == b || target_piece == q)) {
+                return 1;
+            }
+
+            // break if hit a piece
+            if (target_piece != e) {
+                break;
+            }
+
+            // increment target square by move offset
+            target_square += bishop_offsets[i];
+        }
+    }
+
+    // rook and queen straight attacks
+    for (int i = 0; i < 4; ++i) {
+        int target_square = square + rook_offsets[i];
+
+        // loop over attack ray
+        while (!(target_square & 0x88)) {
+            int target_piece = board[target_square];
+
+            // determine if white or black bishop or queen is targeting a square (depending on turn)
+            if (side == white ? (target_piece == R || target_piece == Q) :
+                                (target_piece == r || target_piece == q)) {
+                return 1;
+            }
+
+            // break if hit a piece
+            if (target_piece != e) {
+                break;
+            }
+
+            // increment target square by move offset
+            target_square += rook_offsets[i];
+        }
+    }
+
     return 0;
 }
 
@@ -304,9 +385,9 @@ void parse_fen(char *fen) {
 // main driver
 int main() {
     initialize_char_pieces();
-    char fen[] = "8/8/8/p7/3p4/8/7p/8 w KQkq - 0 1";
+    char fen[] = "8/8/8/3q1p2/4p3/8/8/8 w KQkq - 0 1";
     parse_fen(fen);
     print_board();
-    print_attacked_squares(white);
+    print_attacked_squares(black);
     return 0;
 }
