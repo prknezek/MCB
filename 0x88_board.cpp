@@ -473,6 +473,29 @@ void generate_moves() {
                         }
                     }
                 }
+                // white king castling
+                if (board[square] == K) {
+                    // if king side castling is available
+                    if (castle & KC) {
+                        // make sure there are empty squares between king & rook
+                        if (board[f1] == e && board[g1] == e) {
+                            // make sure king & next squares are not under attack
+                            if (!is_square_attacked(e1, black) && !is_square_attacked(f1, black)) {
+                                cout << "O-O" << endl;
+                            }
+                        }
+                    }
+                    // if queen side castling is available
+                    if (castle & QC) {
+                        // make sure there are empty squares between king & rook
+                        if (board[b1] == e && board[c1] == e && board[d1] == e) {
+                            // make sure king & next squares are not under attack
+                            if (!is_square_attacked(e1, black) && !is_square_attacked(d1, black)) {
+                                cout << "O-O-O" << endl;
+                            }
+                        }
+                    }
+                }
             } 
             // black pawn and castling moves
             else {
@@ -526,6 +549,29 @@ void generate_moves() {
                         }
                     }
                 }
+                // black king castling
+                if (board[square] == k) {
+                    // if king side castling is available
+                    if (castle & kc) {
+                        // make sure there are empty squares between king & rook
+                        if (board[f8] == e && board[g8] == e) {
+                            // make sure king & next squares are not under attack
+                            if (!is_square_attacked(e8, white) && !is_square_attacked(f8, white)) {
+                                cout << "O-O" << endl;
+                            }
+                        }
+                    }
+                    // if queen side castling is available
+                    if (castle & qc) {
+                        // make sure there are empty squares between king & rook
+                        if (board[b8] == e && board[c8] == e && board[d8] == e) {
+                            // make sure king & next squares are not under attack
+                            if (!is_square_attacked(e8, white) && !is_square_attacked(d8, white)) {
+                                cout << "O-O-O" << endl;
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -534,9 +580,9 @@ void generate_moves() {
 // main driver
 int main() {
     initialize_char_pieces();
-    char fen[] = "r1q1k2r/pP1pqpb1/bn2pnp1/2pPN3/1p2P3/2N2Q1p/PpPBBPPP/r3K2R w KQkq - 0 1";
+    char fen[] = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
     parse_fen(fen);
-    side = black;
+
     print_board();
     generate_moves();
     return 0;
