@@ -100,6 +100,19 @@ int enpassant = no_sq;
 // castling rights (dec 15 => bin 1111 => both sides can castle both dirs)
 int castle = 15;
 
+/*
+    Move formatting
+    
+    0000 0000 0000 0000 0111 1111       start square
+    0000 0000 0011 1111 1000 0000       target square
+    0000 0011 1100 0000 0000 0000       promoted piece
+                                        flags:
+    0000 0100 0000 0000 0000 0000           capture
+    0000 1000 0000 0000 0000 0000           double pawn move
+    0001 0000 0000 0000 0000 0000           enpassant
+    0010 0000 0000 0000 0000 0000           castling
+*/
+
 // convert board square indexes to coords
 string square_to_coords[] = {
     "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8", "i8", "j8", "k8", "l8", "m8", "n8", "o8", "p8",
@@ -694,7 +707,7 @@ void generate_moves() {
 // main driver
 int main() {
     initialize_char_pieces();
-    char fen[] = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
+    char fen[] = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ";
     parse_fen(fen);
 
     print_board();
