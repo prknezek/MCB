@@ -123,6 +123,7 @@ bool on_board(int square) {
     return (!(square & 0x88));
 }
 
+// determines if a square is empty or not
 bool is_empty_square(int square) {
     return (board[square] == e);
 }
@@ -597,11 +598,11 @@ void generate_moves() {
                            (is_empty_square(target_square) || is_white_piece(target_piece))) {
                             // test if we are capturing
                             if (target_piece != e) {
-                                cout << "N " << square_to_coords[square] << square_to_coords[target_square] << endl;
+                                cout << square_to_coords[square] << square_to_coords[target_square] << endl;
                             }
                             // moving to empty square
                             else {
-                                cout << "N " << square_to_coords[square] << square_to_coords[target_square] << endl;
+                                cout << square_to_coords[square] << square_to_coords[target_square] << endl;
                             }
                         }
                     }
@@ -620,13 +621,69 @@ void generate_moves() {
                            (is_empty_square(target_square) || is_white_piece(target_piece))) {
                             // test if we are capturing
                             if (target_piece != e) {
-                                cout << "K " << square_to_coords[square] << square_to_coords[target_square] << endl;
+                                cout << square_to_coords[square] << square_to_coords[target_square] << endl;
                             }
                             // moving to empty square
                             else {
-                                cout << "K " << square_to_coords[square] << square_to_coords[target_square] << endl;
+                                cout << square_to_coords[square] << square_to_coords[target_square] << endl;
                             }
                         }
+                    }
+                }
+            }
+            // bishop & queen moves
+            if (side == white ?
+                ((board[square] == B) || (board[square] == Q)) :
+                ((board[square] == b) || (board[square] == q))) {
+                // loop over bishop & queen offsets
+                for (int i = 0; i < 4; ++i) {
+                    int target_square = square + bishop_offsets[i];
+                    // loop over attack ray
+                    while (on_board(target_square)) {
+                        int target_piece = board[target_square];
+                        // if hits own piece
+                        if (side == white ? is_white_piece(target_piece) : is_black_piece(target_piece)) {
+                            break;
+                        }
+                        // if hits enemy piece
+                        if (side == white ? is_black_piece(target_piece) : is_white_piece(target_piece)) {
+                            cout << square_to_coords[square] << square_to_coords[target_square] << endl;
+                            break;
+                        }
+                        // if empty square
+                        if (is_empty_square(target_square)) {
+                            cout << square_to_coords[square] << square_to_coords[target_square] << endl;
+                        }
+                        // increment target square
+                        target_square += bishop_offsets[i];
+                    }
+                }
+            }
+            // rook & queen moves
+            if (side == white ?
+                ((board[square] == R) || (board[square] == Q)) :
+                ((board[square] == r) || (board[square] == q))) {
+                // loop over rook & queen offsets
+                for (int i = 0; i < 4; ++i) {
+                    int target_square = square + rook_offsets[i];
+                    // loop over attack ray
+                    while (on_board(target_square)) {
+                        int target_piece = board[target_square];
+                        // if hits own piece
+                        if (side == white ? is_white_piece(target_piece) : is_black_piece(target_piece)) {
+                            break;
+                        }
+                        // if hits enemy piece
+                        if (side == white ? is_black_piece(target_piece) : is_white_piece(target_piece)) {
+                            cout << square_to_coords[square] << square_to_coords[target_square] << endl;
+                            break;
+                        }
+                        // if empty square
+                        if (is_empty_square(target_square)) {
+                            cout << square_to_coords[square] << square_to_coords[target_square] << endl;
+                        }
+                        // increment target square
+                        target_square += rook_offsets[i];
                     }
                 }
             }
