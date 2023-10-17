@@ -391,15 +391,26 @@ void parse_fen(char *fen) {
     }
 }
 
+
+// returns true if piece is a white piece
+bool is_white_piece(int piece) {
+    return piece >= P && piece <= K;
+}
+
+// returns true if piece is a black piece
+bool is_black_piece(int piece) {
+    return piece >= p && piece <= k;
+}
+
 // returns true if piece on square is a black piece
 // DOES NOT CHECK IF SQUARE IS ON BOARD
-bool is_black_piece(int square) {
+bool is_black_piece_square(int square) {
     return board[square] >= p && board[square] <= k;
 }
 
 // returns true if piece on square is a white piece
 // DOES NOT CHECK IF SQUARE IS ON BOARD
-bool is_white_piece(int square) {
+bool is_white_piece_square(int square) {
     return board[square] >= P && board[square] <= K;
 }
 
@@ -454,14 +465,14 @@ void generate_moves() {
                             // check if target square is on board
                             if (on_board(target_square)) {
                                 // capture pawn promotion
-                                if (rank_7(square) && is_black_piece(target_square)) {
+                                if (rank_7(square) && is_black_piece_square(target_square)) {
                                     cout << square_to_coords[square] << square_to_coords[target_square] << "Q" << endl;
                                     cout << square_to_coords[square] << square_to_coords[target_square] << "R" << endl;
                                     cout << square_to_coords[square] << square_to_coords[target_square] << "B" << endl;
                                     cout << square_to_coords[square] << square_to_coords[target_square] << "N" << endl;
                                 } else {
                                     // normal capture
-                                    if (is_black_piece(target_square)) {
+                                    if (is_black_piece_square(target_square)) {
                                         cout << square_to_coords[square] << square_to_coords[target_square] << endl;
                                     }
                                     // enpassant capture
@@ -530,14 +541,14 @@ void generate_moves() {
                             // check if target square is on board
                             if (on_board(target_square)) {
                                 // capture pawn promotion
-                                if (rank_2(square) && is_white_piece(target_square)) {
+                                if (rank_2(square) && is_white_piece_square(target_square)) {
                                     cout << square_to_coords[square] << square_to_coords[target_square] << "q" << endl;
                                     cout << square_to_coords[square] << square_to_coords[target_square] << "r" << endl;
                                     cout << square_to_coords[square] << square_to_coords[target_square] << "b" << endl;
                                     cout << square_to_coords[square] << square_to_coords[target_square] << "n" << endl;
                                 } else {
                                     // normal capture
-                                    if (is_white_piece(target_square)) {
+                                    if (is_white_piece_square(target_square)) {
                                         cout << square_to_coords[square] << square_to_coords[target_square] << endl;
                                     }
                                     // enpassant capture
@@ -568,6 +579,52 @@ void generate_moves() {
                             // make sure king & next squares are not under attack
                             if (!is_square_attacked(e8, white) && !is_square_attacked(d8, white)) {
                                 cout << "O-O-O" << endl;
+                            }
+                        }
+                    }
+                }
+            }
+            // knight moves
+            if (side == white ? board[square] == N : board[square] == n) {
+                // loop over knight offsets
+                for (int i = 0; i < 8; ++i) {
+                    int target_square = square + knight_offsets[i];
+                    int target_piece = board[target_square];
+                    
+                    if (on_board(target_square)) {
+                        if (side == white ?
+                           (is_empty_square(target_square) || is_black_piece(target_piece)) :
+                           (is_empty_square(target_square) || is_white_piece(target_piece))) {
+                            // test if we are capturing
+                            if (target_piece != e) {
+                                cout << "N " << square_to_coords[square] << square_to_coords[target_square] << endl;
+                            }
+                            // moving to empty square
+                            else {
+                                cout << "N " << square_to_coords[square] << square_to_coords[target_square] << endl;
+                            }
+                        }
+                    }
+                }
+            }
+            // king moves
+            if (side == white ? board[square] == K : board[square] == k) {
+                // loop over knight offsets
+                for (int i = 0; i < 8; ++i) {
+                    int target_square = square + king_offsets[i];
+                    int target_piece = board[target_square];
+                    
+                    if (on_board(target_square)) {
+                        if (side == white ?
+                           (is_empty_square(target_square) || is_black_piece(target_piece)) :
+                           (is_empty_square(target_square) || is_white_piece(target_piece))) {
+                            // test if we are capturing
+                            if (target_piece != e) {
+                                cout << "K " << square_to_coords[square] << square_to_coords[target_square] << endl;
+                            }
+                            // moving to empty square
+                            else {
+                                cout << "K " << square_to_coords[square] << square_to_coords[target_square] << endl;
                             }
                         }
                     }
