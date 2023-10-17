@@ -103,8 +103,8 @@ int castle = 15;
 /*
     Move formatting
     
-    0000 0000 0000 0000 0111 1111       start square
-    0000 0000 0011 1111 1000 0000       target square
+    0000 0000 0000 0000 0111 1111       start square            0x7f
+    0000 0000 0011 1111 1000 0000       target square           0x3f80
     0000 0011 1100 0000 0000 0000       promoted piece
                                         flags:
     0000 0100 0000 0000 0000 0000           capture
@@ -112,6 +112,39 @@ int castle = 15;
     0001 0000 0000 0000 0000 0000           enpassant
     0010 0000 0000 0000 0000 0000           castling
 */
+
+// turn a move into an integer
+#define set_move(source, target, piece, capture_f, pawn_f, enpassant_f, castling_f) \
+(                           \
+    (source) |              \
+    (target << 7) |         \
+    (piece << 14) |         \
+    (capture_f << 18) |     \
+    (pawn_f << 19) |        \
+    (enpassant_f << 20) |   \
+    (castling_f << 21)      \
+)
+
+// extract move's start square
+#define get_move_start(move) (move & 0x7f)
+
+// extract move's target square
+#define get_move_target(move) ((move >> 7) & 0x7f)
+
+// extract move's promoted piece
+#define get_promoted_piece(move) ((move >> 14) & 0xf)
+
+// extract move's capture flag
+#define get_move_capture(move) ((move >> 18) & 0x1)
+
+// extract move's double pawn push flag
+#define get_move_pawn(move) ((move >> 19) & 0x1)
+
+// extract move's enpassant flag
+#define get_move_enpassant(move) ((move >> 20) & 0x1)
+
+// extract move's castling flag
+#define get_move_castling(move) ((move >> 21) & 0x1)
 
 // convert board square indexes to coords
 string square_to_coords[] = {
@@ -124,6 +157,21 @@ string square_to_coords[] = {
     "a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2", "i2", "j2", "k2", "l2", "m2", "n2", "o2", "p2",
     "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1", "i1", "j1", "k1", "l1", "m1", "n1", "o1", "p1"
 };
+
+// decode promoted pieces
+char promoted_pieces[14];
+
+void initialize_promoted_pieces() {
+    promoted_pieces[0] = '-';
+    promoted_pieces[Q] = 'Q';
+    promoted_pieces[R] = 'R';
+    promoted_pieces[B] = 'B';
+    promoted_pieces[N] = 'N';
+    promoted_pieces[q] = 'q';
+    promoted_pieces[r] = 'r';
+    promoted_pieces[b] = 'b';
+    promoted_pieces[n] = 'n';
+}
 
 // piece move offsets (offset to end squares from starting square)
 int knight_offsets[8] = {33, 31, 18, 14, -33, -31, -18, -14};
@@ -706,11 +754,22 @@ void generate_moves() {
 
 // main driver
 int main() {
+    // initialize conversion arrays
     initialize_char_pieces();
+    initialize_promoted_pieces();
+
     char fen[] = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ";
     parse_fen(fen);
 
     print_board();
-    generate_moves();
+    //generate_moves();
+    int move = 0;
+    move = set_move(e2, e4, 0, 1, 1, 0, 0);
+    cout << "move: " << square_to_coords[get_move_start(move)] << square_to_coords[get_move_target(move)] << endl;
+    cout << "promoted piece: " << promoted_pieces[get_promoted_piece(move)] << endl;
+    cout << "capture flag: " << get_move_capture(move) << endl;
+    cout << "double pawn push flag: " << get_move_pawn(move) << endl;
+    cout << "enpassant flag: " << get_move_enpassant(move) << endl;
+    cout << "castling flag: " << get_move_castling(move) << endl;
     return 0;
 }
