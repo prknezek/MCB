@@ -114,7 +114,7 @@ int castle = 15;
 */
 
 // turn a move into an integer
-#define set_move(source, target, piece, capture_f, pawn_f, enpassant_f, castling_f) \
+#define encode_move(source, target, piece, capture_f, pawn_f, enpassant_f, castling_f) \
 (                           \
     (source) |              \
     (target << 7) |         \
@@ -125,25 +125,25 @@ int castle = 15;
     (castling_f << 21)      \
 )
 
-// extract move's start square
+// decode move's start square
 #define get_move_start(move) (move & 0x7f)
 
-// extract move's target square
+// decode move's target square
 #define get_move_target(move) ((move >> 7) & 0x7f)
 
-// extract move's promoted piece
+// decode move's promoted piece
 #define get_promoted_piece(move) ((move >> 14) & 0xf)
 
-// extract move's capture flag
+// decode move's capture flag
 #define get_move_capture(move) ((move >> 18) & 0x1)
 
-// extract move's double pawn push flag
+// decode move's double pawn push flag
 #define get_move_pawn(move) ((move >> 19) & 0x1)
 
-// extract move's enpassant flag
+// decode move's enpassant flag
 #define get_move_enpassant(move) ((move >> 20) & 0x1)
 
-// extract move's castling flag
+// decode move's castling flag
 #define get_move_castling(move) ((move >> 21) & 0x1)
 
 // convert board square indexes to coords
@@ -178,6 +178,14 @@ int knight_offsets[8] = {33, 31, 18, 14, -33, -31, -18, -14};
 int bishop_offsets[4] = {15, 17, -15, -17};
 int rook_offsets[4] = {16, -16, 1, -1};
 int king_offsets[8] = {16, -16, 1, -1, 15, 17, -15, -17};
+
+// move list structure
+typedef struct {
+    // move list
+    int moves[256];
+    // move count
+    int count = 0;
+} moves;
 
 // determines if a square is on the board or not
 bool on_board(int square) {
@@ -752,24 +760,39 @@ void generate_moves() {
     }
 }
 
+// populate move_list
+void add_move(moves *move_list, int move) {
+    // push move into the move list
+    move_list->moves[move_list->count] = move;
+    move_list->count++;
+}
+
 // main driver
 int main() {
     // initialize conversion arrays
     initialize_char_pieces();
     initialize_promoted_pieces();
+    // create move_list instance
+    moves move_list[1];
 
     char fen[] = "8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - ";
     parse_fen(fen);
 
     print_board();
-    //generate_moves();
-    int move = 0;
-    move = set_move(e2, e4, 0, 1, 1, 0, 0);
-    cout << "move: " << square_to_coords[get_move_start(move)] << square_to_coords[get_move_target(move)] << endl;
-    cout << "promoted piece: " << promoted_pieces[get_promoted_piece(move)] << endl;
-    cout << "capture flag: " << get_move_capture(move) << endl;
-    cout << "double pawn push flag: " << get_move_pawn(move) << endl;
-    cout << "enpassant flag: " << get_move_enpassant(move) << endl;
-    cout << "castling flag: " << get_move_castling(move) << endl;
+    generate_moves();
+
+    // loop over moves in a movelist
+    // for (int i = 0; i < move_list->count; ++i) {
+    //     int move = move_list->moves[i];
+    //     cout << square_to_coords[get_move_start(move)] << square_to_coords[get_move_target(move)] << endl;
+    // }
+
+
+    // cout << "move: " << square_to_coords[get_move_start(move)] << square_to_coords[get_move_target(move)] << endl;
+    // cout << "promoted piece: " << promoted_pieces[get_promoted_piece(move)] << endl;
+    // cout << "capture flag: " << get_move_capture(move) << endl;
+    // cout << "double pawn push flag: " << get_move_pawn(move) << endl;
+    // cout << "enpassant flag: " << get_move_enpassant(move) << endl;
+    // cout << "castling flag: " << get_move_castling(move) << endl;
     return 0;
 }
