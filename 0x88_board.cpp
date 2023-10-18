@@ -197,63 +197,6 @@ bool is_empty_square(int square) {
     return (board[square] == e);
 }
 
-// print board
-void print_board() {
-    // print indentation
-    cout << endl;
-
-    // loop over board ranks
-    for (int rank = 0; rank < 8; ++rank) {
-        for (int file = 0; file < 16; ++file) {
-            // init square
-            int square = rank * 16 + file;
-
-            // print ranks
-            if (file == 0) {
-                cout << 8 - rank << "  ";
-            }
-
-            // if square is on board
-            if (on_board(square)) {
-                //cout << ascii_pieces[board[square]] << " ";
-                cout << unicode_pieces[board[square]] << " ";
-            }
-        }
-        // print new line every time new rank is encountered
-        cout << endl;
-    }
-    // print files
-    cout << "\n   a  b  c  d  e  f  g  h\n\n";
-
-    // print board stats
-    cout << "---------------------------" << endl;
-    cout << " Side: " << ((side == white) ? "white" : "black") << endl;
-    cout << " Castling: " << ((castle & KC) ? 'K' : '-')
-                          << ((castle & QC) ? 'Q' : '-')
-                          << ((castle & kc) ? 'k' : '-')
-                          << ((castle & qc) ? 'q' : '-') << endl;
-    cout << " Enpassant: " << ((enpassant == no_sq) ? "-" : square_to_coords[enpassant]) << endl;
-}
-
-// reset board
-void reset_board() {
-    for (int rank = 0; rank < 8; ++rank) {
-        for (int file = 0; file < 16; ++file) {
-            // init square
-            int square = rank * 16 + file;
-
-            // if square is on board
-            if (on_board(square)) {
-                // reset current board square
-                board[square] = e;
-            }
-        }
-    }
-    // reset stats
-    side = -1;
-    castle = 0;
-    enpassant = no_sq;
-}
 
 // returns if the given square is attacked
 int is_square_attacked(int square, int side) {
@@ -363,6 +306,23 @@ int is_square_attacked(int square, int side) {
     return 0;
 }
 
+// print move list
+void print_move_list(moves *move_list) {
+    cout << "\n Moves:   Capture  Double  Enpassant  Castle\n" << endl;
+    // loop over moves in a movelist
+    for (int i = 0; i < move_list->count; ++i) {
+        int move = move_list->moves[i];
+        cout << " " << square_to_coords[get_move_start(move)] << square_to_coords[get_move_target(move)];
+        cout << (get_promoted_piece(move) ? promoted_pieces[get_promoted_piece(move)] : ' ');
+        cout << "    " << get_move_capture(move)
+             << "        " << get_move_pawn(move)
+             << "       " << get_move_enpassant(move)
+             << "          " << get_move_castling(move) << endl;
+    }
+    cout << "\n Number of moves: " << move_list->count << endl;
+}
+
+// prints a board representation of attacked squares
 void print_attacked_squares(int side) {
     // print indentation
     cout << endl;
@@ -388,6 +348,64 @@ void print_attacked_squares(int side) {
         cout << endl;
     }
     cout << "\n   a b c d e f g h\n\n";
+}
+
+// print board
+void print_board() {
+    // print indentation
+    cout << endl;
+
+    // loop over board ranks
+    for (int rank = 0; rank < 8; ++rank) {
+        for (int file = 0; file < 16; ++file) {
+            // init square
+            int square = rank * 16 + file;
+
+            // print ranks
+            if (file == 0) {
+                cout << 8 - rank << "  ";
+            }
+
+            // if square is on board
+            if (on_board(square)) {
+                //cout << ascii_pieces[board[square]] << " ";
+                cout << unicode_pieces[board[square]] << " ";
+            }
+        }
+        // print new line every time new rank is encountered
+        cout << endl;
+    }
+    // print files
+    cout << "\n   a  b  c  d  e  f  g  h\n\n";
+
+    // print board stats
+    cout << "---------------------------" << endl;
+    cout << " Side: " << ((side == white) ? "white" : "black") << endl;
+    cout << " Castling: " << ((castle & KC) ? 'K' : '-')
+                          << ((castle & QC) ? 'Q' : '-')
+                          << ((castle & kc) ? 'k' : '-')
+                          << ((castle & qc) ? 'q' : '-') << endl;
+    cout << " Enpassant: " << ((enpassant == no_sq) ? "-" : square_to_coords[enpassant]) << endl;
+}
+
+// reset board
+void reset_board() {
+    for (int rank = 0; rank < 8; ++rank) {
+        for (int file = 0; file < 16; ++file) {
+            // init square
+            int square = rank * 16 + file;
+
+            // if square is on board
+            if (on_board(square)) {
+                // reset current board square
+                board[square] = e;
+            }
+        }
+    }
+    // reset stats
+    side = -1;
+    castle = 0;
+    enpassant = no_sq;
 }
 
 // parse FEN
@@ -782,15 +800,7 @@ int main() {
 
     print_board();
     generate_moves(move_list);
-
-    // loop over moves in a movelist
-    for (int i = 0; i < move_list->count; ++i) {
-        int move = move_list->moves[i];
-        cout << square_to_coords[get_move_start(move)] << square_to_coords[get_move_target(move)] << endl;
-    }
-    cout << "Number of moves: " << move_list->count << endl;
-
-
+    print_move_list(move_list);
     // cout << "move: " << square_to_coords[get_move_start(move)] << square_to_coords[get_move_target(move)] << endl;
     // cout << "promoted piece: " << promoted_pieces[get_promoted_piece(move)] << endl;
     // cout << "capture flag: " << get_move_capture(move) << endl;
