@@ -818,6 +818,7 @@ int make_move(int move) {
     int target_square = get_move_target(move);
     int promoted_piece = get_promoted_piece(move);
     int enpassant_flag = get_move_enpassant(move);
+    int double_pawn_move_flag = get_move_pawn(move);
 
     // move piece
     board[target_square] = board[from_square];
@@ -837,6 +838,13 @@ int make_move(int move) {
 
     // reset enpassant square
     enpassant = no_sq;
+
+    // double pawn push
+    if (double_pawn_move_flag) {
+        side == white ? 
+            (enpassant = target_square + 16) :
+            (enpassant = target_square - 16);
+    }
 
     print_board();
 
@@ -858,13 +866,13 @@ int main() {
     // create move_list instance
     moves move_list[1];
 
-    char fen[] = "r3k2r/p2pqpb1/bn2pnp1/2pPN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq c6 0 1";
+    char fen[] = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R b KQkq - 0 1";
     parse_fen(fen);
 
     print_board();
     generate_moves(move_list);
 
-    int move = encode_move(d5, d6, 0, 0, 0, 0, 0);
+    int move = encode_move(c7, c5, 0, 0, 1, 0, 0);
     make_move(move);
 
     // cout << "move: " << square_to_coords[get_move_start(move)] << square_to_coords[get_move_target(move)] << endl;
