@@ -79,6 +79,30 @@ void initialize_char_pieces() {
     char_pieces['k'] = k;
 }
 
+// castling rights
+/*
+                                castle   move     in      in
+                                  right  map      binary  decimal
+
+          white king  moved:      1111 & 1100  =  1100    12
+    white king's rook moved:      1111 & 1110  =  1110    14
+   white queen's rook moved:      1111 & 1101  =  1101    13
+
+           black king moved:      1111 & 0011  =  0011    3
+    black king's rook moved:      1111 & 1011  =  0111    11
+   black queen's rook moved:      1111 & 0111  =  1011    7
+*/
+int castling_rights[128] = {
+     7, 15, 15, 15,  3, 15, 15, 11,  o, o, o, o, o, o, o, o,
+    15, 15, 15, 15, 15, 15, 15, 15,  o, o, o, o, o, o, o, o,
+    15, 15, 15, 15, 15, 15, 15, 15,  o, o, o, o, o, o, o, o,
+    15, 15, 15, 15, 15, 15, 15, 15,  o, o, o, o, o, o, o, o,
+    15, 15, 15, 15, 15, 15, 15, 15,  o, o, o, o, o, o, o, o,
+    15, 15, 15, 15, 15, 15, 15, 15,  o, o, o, o, o, o, o, o,
+    15, 15, 15, 15, 15, 15, 15, 15,  o, o, o, o, o, o, o, o,
+    13, 15, 15, 15, 12, 15, 15, 14,  o, o, o, o, o, o, o, o
+};
+
 // chess board representation
 int board[128] = {
     r, n, b, q, k, b, n, r,  o, o, o, o, o, o, o, o,
@@ -879,6 +903,10 @@ int make_move(int move) {
         king_square[side] = target_square;
     }
 
+    // update castling rights
+    castle &= castling_rights[from_square];
+    castle &= castling_rights[target_square];
+
     print_board();
 
     // restore original board position
@@ -899,13 +927,13 @@ int main() {
     // create move_list instance
     moves move_list[1];
     // "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
-    char fen[] = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
+    char fen[] = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R b KQkq - 0 1";
     parse_fen(fen);
 
     print_board();
     generate_moves(move_list);
 
-    int move = encode_move(e1, c1, 0, 0, 0, 0, 1);
+    int move = encode_move(h8, g8, 0, 0, 0, 0, 0);
     make_move(move);
 
     // cout << "move: " << square_to_coords[get_move_start(move)] << square_to_coords[get_move_target(move)] << endl;
