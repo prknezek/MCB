@@ -225,7 +225,7 @@ bool is_empty_square(int square) {
 }
 
 
-// returns if the given square is attacked
+// returns if the given square is attacked by a user-defined side
 int is_square_attacked(int square, int side) {
     // pawn attacks
     if (side == white) {
@@ -907,16 +907,24 @@ int make_move(int move) {
     castle &= castling_rights[from_square];
     castle &= castling_rights[target_square];
 
-    print_board();
-
-    // restore original board position
-    memcpy(board, board_copy, 512);
-    side = side_copy;
-    enpassant = enpassant_copy;
-    castle = castle_copy;
-    memcpy(king_square, king_square_copy, 8);
+    // change side
+    side ^= 1;
 
     print_board();
+
+    // take move back if king is in check
+    if (is_square_attacked(king_square[side ^ 1], side)) {
+        // restore original board position
+        memcpy(board, board_copy, 512);
+        side = side_copy;
+        enpassant = enpassant_copy;
+        castle = castle_copy;
+        memcpy(king_square, king_square_copy, 8);
+        // illegal move
+        return 0;
+    }
+    // legal move
+    return 1;
 }
 
 // main driver
@@ -927,20 +935,16 @@ int main() {
     // create move_list instance
     moves move_list[1];
     // "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
-    char fen[] = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R b KQkq - 0 1";
+    char fen[] = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2b2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
     parse_fen(fen);
 
     print_board();
     generate_moves(move_list);
 
-    int move = encode_move(h8, g8, 0, 0, 0, 0, 0);
-    make_move(move);
+    int move = encode_move(d2, c3, 0, 1, 0, 0, 0);
+    cout << "Make move: " << make_move(move) << endl;
 
-    // cout << "move: " << square_to_coords[get_move_start(move)] << square_to_coords[get_move_target(move)] << endl;
-    // cout << "promoted piece: " << promoted_pieces[get_promoted_piece(move)] << endl;
-    // cout << "capture flag: " << get_move_capture(move) << endl;
-    // cout << "double pawn push flag: " << get_move_pawn(move) << endl;
-    // cout << "enpassant flag: " << get_move_enpassant(move) << endl;
-    // cout << "castling flag: " << get_move_castling(move) << endl;
+    print_board();
+
     return 0;
 }
