@@ -100,6 +100,9 @@ int enpassant = no_sq;
 // castling rights (dec 15 => bin 1111 => both sides can castle both dirs)
 int castle = 15;
 
+// kings' squares
+int king_square[2] = {e1, e8};
+
 /*
     Move formatting
     
@@ -386,6 +389,7 @@ void print_board() {
                           << ((castle & kc) ? 'k' : '-')
                           << ((castle & qc) ? 'q' : '-') << endl;
     cout << " Enpassant: " << ((enpassant == no_sq) ? "-" : square_to_coords[enpassant]) << endl;
+    cout << " King square: " << square_to_coords[king_square[side]] << endl;
 }
 
 // reset board
@@ -422,6 +426,13 @@ void parse_fen(char *fen) {
             if (on_board(square)) {
                 // match pieces
                 if ((*fen >= 'a' && *fen <= 'z') || (*fen >= 'A' && *fen <= 'Z')) {
+                    // set up kings' square
+                    if (*fen == 'K') {
+                        king_square[white] = square;
+                    } else if (*fen == 'k') {
+                        king_square[black] = square;
+                    }
+                    
                     // set the piece on the board
                     board[square] = char_pieces[*fen];
 
@@ -800,7 +811,7 @@ int main() {
 
     print_board();
     generate_moves(move_list);
-    print_move_list(move_list);
+
     // cout << "move: " << square_to_coords[get_move_start(move)] << square_to_coords[get_move_target(move)] << endl;
     // cout << "promoted piece: " << promoted_pieces[get_promoted_piece(move)] << endl;
     // cout << "capture flag: " << get_move_capture(move) << endl;
