@@ -1003,64 +1003,13 @@ void perft_driver(int depth) {
 
 // perft test
 void perft_test(int depth) {
-    cout << "\n Performance Test\n\n";
+    cout << "\n Performance Test\n";
 
     // init start time
     int start_time = get_time_ms();
 
-    // create move_list instance
-    moves move_list[1];
-
-    // generate moves
-    generate_moves(move_list);
-
-    // loop over the generated moves
-    for (int move_count = 0; move_count < move_list->count; ++move_count) {
-        // create board state copy variables
-        int board_copy[128];
-        int king_square_copy[2];
-        int side_copy;
-        int enpassant_copy;
-        int castle_copy;
-
-        // copy board state
-        memcpy(board_copy, board, 512);
-        side_copy = side;
-        enpassant_copy = enpassant;
-        castle_copy = castle;
-        memcpy(king_square_copy, king_square, 8);
-
-        // if we made an illegal move
-        if (!make_move(move_list->moves[move_count], all_moves)) {
-            // skip illegal move
-            continue;
-        }
-
-        // cummulative nodes
-        long cum_nodes = nodes;
-
-        // recursive call
-        perft_driver(depth - 1);
-
-        // old nodes
-        long old_nodes = nodes - cum_nodes;
-
-        // restore board position
-        memcpy(board, board_copy, 512);
-        side = side_copy;
-        enpassant = enpassant_copy;
-        castle = castle_copy;
-        memcpy(king_square, king_square_copy, 8);
-
-        cout << " move " << move_count + 1
-                         << ": "
-                         << square_to_coords[get_move_start(move_list->moves[move_count])]
-                         << square_to_coords[get_move_target(move_list->moves[move_count])]
-                         << promoted_pieces[get_promoted_piece(move_list->moves[move_count])]
-                         << "    "
-                         << old_nodes
-                         << endl;
-    }
+    // recursive call
+    perft_driver(depth);
 
     // print results
     cout << "\n Depth: " << depth << endl;
@@ -1078,7 +1027,7 @@ int main() {
     parse_fen(tricky_position);
     print_board();
 
-    perft_test(3);
+    perft_test(4);
 
     return 0;
 }
