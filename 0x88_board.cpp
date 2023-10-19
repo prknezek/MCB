@@ -813,20 +813,28 @@ int make_move(int move) {
     castle_copy = castle;
     memcpy(king_square_copy, king_square, 8);
 
-    // decode start & target squares from move
+    // decode move
     int from_square = get_move_start(move);
     int target_square = get_move_target(move);
+    int promoted_piece = get_promoted_piece(move);
 
     // move piece
     board[target_square] = board[from_square];
     board[from_square] = e;
+
+    if (promoted_piece != e) {
+        board[target_square] = promoted_piece;
+    }
+    
     print_board();
+
     // restore original board position
     memcpy(board, board_copy, 512);
     side = side_copy;
     enpassant = enpassant_copy;
     castle = castle_copy;
     memcpy(king_square, king_square_copy, 8);
+
     print_board();
 }
 
@@ -838,14 +846,15 @@ int main() {
     // create move_list instance
     moves move_list[1];
 
-    char fen[] = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
-    parse_fen(tricky_position);
+    char fen[] = "r3k2r/pPppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
+    parse_fen(fen);
 
     print_board();
     generate_moves(move_list);
 
-    int move = encode_move(d5, d6, 0, 0, 0, 0, 0);
+    int move = encode_move(b7, a8, R, 0, 0, 0, 0);
     make_move(move);
+
     // cout << "move: " << square_to_coords[get_move_start(move)] << square_to_coords[get_move_target(move)] << endl;
     // cout << "promoted piece: " << promoted_pieces[get_promoted_piece(move)] << endl;
     // cout << "capture flag: " << get_move_capture(move) << endl;
