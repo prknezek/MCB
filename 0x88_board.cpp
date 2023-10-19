@@ -59,7 +59,7 @@ enum sides {white, black};
 char ascii_pieces[] = ".PNBRQKpnbrqko";
 
 // unicode pieces
-string unicode_pieces[] = {". ", "♟︎", "♞", "♝", "♜", "♛", "♚", "♙", "♘", "♗", "♖", "♕", "♔"};
+string unicode_pieces[] = {". ", "♟", "♞", "♝", "♜", "♛", "♚", "♙", "♘", "♗", "♖", "♕", "♔"};
 
 // encode ascii pieces
 int char_pieces[128];
@@ -399,7 +399,7 @@ void print_board() {
             // if square is on board
             if (on_board(square)) {
                 //cout << ascii_pieces[board[square]] << " ";
-                cout << unicode_pieces[board[square]] << " ";
+                cout << ascii_pieces[board[square]] << " ";
             }
         }
         // print new line every time new rank is encountered
@@ -915,8 +915,6 @@ int make_move(int move, int capture_flag) {
         // change side
         side ^= 1;
 
-        print_board();
-
         // take move back if king is in check
         if (is_square_attacked(king_square[side ^ 1], side)) {
             // restore original board position
@@ -944,24 +942,72 @@ int make_move(int move, int capture_flag) {
     }
 }
 
+// perft driver
+void perft_driver(int depth) {
+    // base case
+    if (depth == 0) {
+        return;
+    }
+    // create move_list instance
+    moves move_list[1];
+
+    // generate moves
+    generate_moves(move_list);
+
+    // loop over the generated moves
+    for (int move_count = 0; move_count < move_list->count; ++move_count) {
+        // create board state copy variables
+        int board_copy[128];
+        int king_square_copy[2];
+        int side_copy;
+        int enpassant_copy;
+        int castle_copy;
+
+        // copy board state
+        memcpy(board_copy, board, 512);
+        side_copy = side;
+        enpassant_copy = enpassant;
+        castle_copy = castle;
+        memcpy(king_square_copy, king_square, 8);
+
+        // print_board();
+        // getchar();
+
+        // if we made an illegal move
+        if (!make_move(move_list->moves[move_count], all_moves)) {
+            // skip illegal move
+            continue;
+        }
+
+        // print_board();
+        // getchar();
+
+        // recursive call
+        perft_driver(depth - 1);
+
+        // restore board position
+        memcpy(board, board_copy, 512);
+        side = side_copy;
+        enpassant = enpassant_copy;
+        castle = castle_copy;
+        memcpy(king_square, king_square_copy, 8);
+
+        // print_board();
+        // getchar();
+    }
+}
+
 // main driver
 int main() {
     // initialize conversion arrays
     initialize_char_pieces();
     initialize_promoted_pieces();
-    // create move_list instance
-    moves move_list[1];
-    // "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
-    char fen[] = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
-    parse_fen(fen);
 
+    // parse fen string
+    parse_fen(tricky_position);
     print_board();
-    generate_moves(move_list);
 
-    int move = encode_move(d5, e6, 0, 1, 0, 0, 0);
-    cout << "Make move: " << make_move(move, only_captures) << endl;
-
-    print_board();
+    perft_driver(3);
 
     return 0;
 }
