@@ -819,6 +819,7 @@ int make_move(int move) {
     int promoted_piece = get_promoted_piece(move);
     int enpassant_flag = get_move_enpassant(move);
     int double_pawn_move_flag = get_move_pawn(move);
+    int castle_flag = get_move_castling(move);
 
     // move piece
     board[target_square] = board[from_square];
@@ -846,6 +847,38 @@ int make_move(int move) {
             (enpassant = target_square - 16);
     }
 
+    // castle move
+    if (castle_flag) {
+        // switch target square
+        switch (target_square) {
+            // white king side castling
+            case g1:
+                board[f1] = board[h1];
+                board[h1] = e;
+                break;
+            // white queen side castling
+            case c1:
+                board[d1] = board[a1];
+                board[a1] = e;
+                break;
+            // black king side castling
+            case g8:
+                board[f8] = board[h8];
+                board[h8] = e;
+                break;
+            // black queen side castling
+            case c8:
+                board[d8] = board[a8];
+                board[a8] = e;
+                break; 
+        }
+    }
+
+    // update king square
+    if (board[target_square] == K || board[target_square] == k) {
+        king_square[side] = target_square;
+    }
+
     print_board();
 
     // restore original board position
@@ -865,14 +898,14 @@ int main() {
     initialize_promoted_pieces();
     // create move_list instance
     moves move_list[1];
-
-    char fen[] = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R b KQkq - 0 1";
+    // "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
+    char fen[] = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
     parse_fen(fen);
 
     print_board();
     generate_moves(move_list);
 
-    int move = encode_move(c7, c5, 0, 0, 1, 0, 0);
+    int move = encode_move(e1, c1, 0, 0, 0, 0, 1);
     make_move(move);
 
     // cout << "move: " << square_to_coords[get_move_start(move)] << square_to_coords[get_move_target(move)] << endl;
