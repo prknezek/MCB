@@ -585,7 +585,7 @@ void generate_moves(moves *move_list) {
                             add_move(move_list, encode_move(square, target_square, 0, 0, 0, 0, 0));
                             // two squares ahead pawn move (make sure pawns are on 2nd rank)
                             if (rank_2(square) && is_empty_square(square - 32)) {
-                                add_move(move_list, encode_move(square, target_square, 0, 0, 1, 0, 0));
+                                add_move(move_list, encode_move(square, square - 32, 0, 0, 1, 0, 0));
                             }
                         }
                     }
@@ -661,7 +661,7 @@ void generate_moves(moves *move_list) {
                             add_move(move_list, encode_move(square, target_square, 0, 0, 0, 0, 0));
                             // two squares ahead pawn move (make sure pawns are on 7th rank)
                             if (rank_7(square) && is_empty_square(square + 32)) {
-                                add_move(move_list, encode_move(square, target_square, 0, 0, 1, 0, 0));
+                                add_move(move_list, encode_move(square, square + 32, 0, 0, 1, 0, 0));
                             }
                         }
                     }
@@ -1004,10 +1004,10 @@ int main() {
     initialize_promoted_pieces();
 
     // parse fen string
-    parse_fen(tricky_position);
+    parse_fen(start_position);
     print_board();
 
-    perft_driver(3);
+    perft_driver(1);
 
     return 0;
 }
