@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <string.h>
+#include <chrono>
 
 // FEN debug positions
 char start_position[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -942,10 +943,22 @@ int make_move(int move, int capture_flag) {
     }
 }
 
+// count nodes 
+long nodes = 0;
+
+// get time in milliseconds
+int get_time_ms() {
+    auto current_time = std::chrono::system_clock::now();
+    auto duration = current_time.time_since_epoch();
+    return std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+}
+
 // perft driver
 void perft_driver(int depth) {
     // base case
     if (depth == 0) {
+        // count current position
+        nodes++;
         return;
     }
     // create move_list instance
@@ -970,17 +983,11 @@ void perft_driver(int depth) {
         castle_copy = castle;
         memcpy(king_square_copy, king_square, 8);
 
-        // print_board();
-        // getchar();
-
         // if we made an illegal move
         if (!make_move(move_list->moves[move_count], all_moves)) {
             // skip illegal move
             continue;
         }
-
-        // print_board();
-        // getchar();
 
         // recursive call
         perft_driver(depth - 1);
@@ -991,10 +998,74 @@ void perft_driver(int depth) {
         enpassant = enpassant_copy;
         castle = castle_copy;
         memcpy(king_square, king_square_copy, 8);
-
-        // print_board();
-        // getchar();
     }
+}
+
+// perft test
+void perft_test(int depth) {
+    cout << "\n Performance Test\n\n";
+
+    // init start time
+    int start_time = get_time_ms();
+
+    // create move_list instance
+    moves move_list[1];
+
+    // generate moves
+    generate_moves(move_list);
+
+    // loop over the generated moves
+    for (int move_count = 0; move_count < move_list->count; ++move_count) {
+        // create board state copy variables
+        int board_copy[128];
+        int king_square_copy[2];
+        int side_copy;
+        int enpassant_copy;
+        int castle_copy;
+
+        // copy board state
+        memcpy(board_copy, board, 512);
+        side_copy = side;
+        enpassant_copy = enpassant;
+        castle_copy = castle;
+        memcpy(king_square_copy, king_square, 8);
+
+        // if we made an illegal move
+        if (!make_move(move_list->moves[move_count], all_moves)) {
+            // skip illegal move
+            continue;
+        }
+
+        // cummulative nodes
+        long cum_nodes = nodes;
+
+        // recursive call
+        perft_driver(depth - 1);
+
+        // old nodes
+        long old_nodes = nodes - cum_nodes;
+
+        // restore board position
+        memcpy(board, board_copy, 512);
+        side = side_copy;
+        enpassant = enpassant_copy;
+        castle = castle_copy;
+        memcpy(king_square, king_square_copy, 8);
+
+        cout << " move " << move_count + 1
+                         << ": "
+                         << square_to_coords[get_move_start(move_list->moves[move_count])]
+                         << square_to_coords[get_move_target(move_list->moves[move_count])]
+                         << promoted_pieces[get_promoted_piece(move_list->moves[move_count])]
+                         << "    "
+                         << old_nodes
+                         << endl;
+    }
+
+    // print results
+    cout << "\n Depth: " << depth << endl;
+    cout << " Nodes: " << nodes << endl;
+    cout << " Time: " << get_time_ms() - start_time << "ms" << endl;
 }
 
 // main driver
@@ -1004,10 +1075,10 @@ int main() {
     initialize_promoted_pieces();
 
     // parse fen string
-    parse_fen(start_position);
+    parse_fen(tricky_position);
     print_board();
 
-    perft_driver(1);
+    perft_test(3);
 
     return 0;
 }
