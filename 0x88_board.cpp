@@ -34,6 +34,9 @@ enum squares {
     a1 = 112, b1, c1, d1, e1, f1, g1, h1, no_sq
 };
 
+// capture flags
+enum capture_flags { all_moves, only_captures };
+
 // castling binary representation
 //  bin  dec
 // 0001   1   white king can castle king side
@@ -822,109 +825,123 @@ void generate_moves(moves *move_list) {
     }
 }
 
-int make_move(int move) {
-    // create board state copy variables
-    int board_copy[128];
-    int king_square_copy[2];
-    int side_copy;
-    int enpassant_copy;
-    int castle_copy;
+int make_move(int move, int capture_flag) {
+    // make quiet move
+    if (capture_flag == all_moves) {
+        // create board state copy variables
+        int board_copy[128];
+        int king_square_copy[2];
+        int side_copy;
+        int enpassant_copy;
+        int castle_copy;
 
-    // copy board state
-    memcpy(board_copy, board, 512);
-    side_copy = side;
-    enpassant_copy = enpassant;
-    castle_copy = castle;
-    memcpy(king_square_copy, king_square, 8);
+        // copy board state
+        memcpy(board_copy, board, 512);
+        side_copy = side;
+        enpassant_copy = enpassant;
+        castle_copy = castle;
+        memcpy(king_square_copy, king_square, 8);
 
-    // decode move
-    int from_square = get_move_start(move);
-    int target_square = get_move_target(move);
-    int promoted_piece = get_promoted_piece(move);
-    int enpassant_flag = get_move_enpassant(move);
-    int double_pawn_move_flag = get_move_pawn(move);
-    int castle_flag = get_move_castling(move);
+        // decode move
+        int from_square = get_move_start(move);
+        int target_square = get_move_target(move);
+        int promoted_piece = get_promoted_piece(move);
+        int enpassant_flag = get_move_enpassant(move);
+        int double_pawn_move_flag = get_move_pawn(move);
+        int castle_flag = get_move_castling(move);
 
-    // move piece
-    board[target_square] = board[from_square];
-    board[from_square] = e;
+        // move piece
+        board[target_square] = board[from_square];
+        board[from_square] = e;
 
-    // pawn promotion
-    if (promoted_piece != e) {
-        board[target_square] = promoted_piece;
-    }
+        // pawn promotion
+        if (promoted_piece != e) {
+            board[target_square] = promoted_piece;
+        }
 
-    // enpassant capture
-    if (enpassant_flag) {
-        side == white ? 
-            (board[target_square + 16] = e) : 
-            (board[target_square - 16] = e);
-    }
+        // enpassant capture
+        if (enpassant_flag) {
+            side == white ? 
+                (board[target_square + 16] = e) : 
+                (board[target_square - 16] = e);
+        }
 
-    // reset enpassant square
-    enpassant = no_sq;
+        // reset enpassant square
+        enpassant = no_sq;
 
-    // double pawn push
-    if (double_pawn_move_flag) {
-        side == white ? 
-            (enpassant = target_square + 16) :
-            (enpassant = target_square - 16);
-    }
+        // double pawn push
+        if (double_pawn_move_flag) {
+            side == white ? 
+                (enpassant = target_square + 16) :
+                (enpassant = target_square - 16);
+        }
 
-    // castle move
-    if (castle_flag) {
-        // switch target square
-        switch (target_square) {
-            // white king side castling
-            case g1:
-                board[f1] = board[h1];
-                board[h1] = e;
-                break;
-            // white queen side castling
-            case c1:
-                board[d1] = board[a1];
-                board[a1] = e;
-                break;
-            // black king side castling
-            case g8:
-                board[f8] = board[h8];
-                board[h8] = e;
-                break;
-            // black queen side castling
-            case c8:
-                board[d8] = board[a8];
-                board[a8] = e;
-                break; 
+        // castle move
+        if (castle_flag) {
+            // switch target square
+            switch (target_square) {
+                // white king side castling
+                case g1:
+                    board[f1] = board[h1];
+                    board[h1] = e;
+                    break;
+                // white queen side castling
+                case c1:
+                    board[d1] = board[a1];
+                    board[a1] = e;
+                    break;
+                // black king side castling
+                case g8:
+                    board[f8] = board[h8];
+                    board[h8] = e;
+                    break;
+                // black queen side castling
+                case c8:
+                    board[d8] = board[a8];
+                    board[a8] = e;
+                    break; 
+            }
+        }
+
+        // update king square
+        if (board[target_square] == K || board[target_square] == k) {
+            king_square[side] = target_square;
+        }
+
+        // update castling rights
+        castle &= castling_rights[from_square];
+        castle &= castling_rights[target_square];
+
+        // change side
+        side ^= 1;
+
+        print_board();
+
+        // take move back if king is in check
+        if (is_square_attacked(king_square[side ^ 1], side)) {
+            // restore original board position
+            memcpy(board, board_copy, 512);
+            side = side_copy;
+            enpassant = enpassant_copy;
+            castle = castle_copy;
+            memcpy(king_square, king_square_copy, 8);
+            // illegal move
+            return 0;
+        }
+        // legal move
+        return 1;
+    } else {
+        // capture move
+
+        // if move is a capture
+        if (get_move_capture(move)) {
+            // make capture move
+            make_move(move, all_moves);
+        } else {
+            // move is not a capture
+            return 0;
         }
     }
-
-    // update king square
-    if (board[target_square] == K || board[target_square] == k) {
-        king_square[side] = target_square;
-    }
-
-    // update castling rights
-    castle &= castling_rights[from_square];
-    castle &= castling_rights[target_square];
-
-    // change side
-    side ^= 1;
-
-    print_board();
-
-    // take move back if king is in check
-    if (is_square_attacked(king_square[side ^ 1], side)) {
-        // restore original board position
-        memcpy(board, board_copy, 512);
-        side = side_copy;
-        enpassant = enpassant_copy;
-        castle = castle_copy;
-        memcpy(king_square, king_square_copy, 8);
-        // illegal move
-        return 0;
-    }
-    // legal move
-    return 1;
 }
 
 // main driver
@@ -935,14 +952,14 @@ int main() {
     // create move_list instance
     moves move_list[1];
     // "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1"
-    char fen[] = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2b2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
+    char fen[] = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
     parse_fen(fen);
 
     print_board();
     generate_moves(move_list);
 
-    int move = encode_move(d2, c3, 0, 1, 0, 0, 0);
-    cout << "Make move: " << make_move(move) << endl;
+    int move = encode_move(d5, e6, 0, 1, 0, 0, 0);
+    cout << "Make move: " << make_move(move, only_captures) << endl;
 
     print_board();
 
