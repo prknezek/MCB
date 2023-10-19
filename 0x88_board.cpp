@@ -1,7 +1,7 @@
 // headers
 #include <stdio.h>
 #include <iostream>
-#include <string>
+#include <string.h>
 
 // FEN debug positions
 char start_position[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -798,6 +798,32 @@ void generate_moves(moves *move_list) {
     }
 }
 
+int make_move(int move) {
+    // create board state copy variables
+    int board_copy[128];
+    int king_square_copy[2];
+    int side_copy;
+    int enpassant_copy;
+    int castle_copy;
+
+    // copy board state
+    memcpy(board_copy, board, 512);
+    side_copy = side;
+    enpassant_copy = enpassant;
+    castle_copy = castle;
+    memcpy(king_square_copy, king_square, 8);
+
+    // make move logic
+
+    /* restore original board position
+    memcpy(board, board_copy, 512);
+    side = side_copy;
+    enpassant = enpassant_copy;
+    castle = castle_copy;
+    memcpy(king_square, king_square_copy, 8);
+    */
+}
+
 // main driver
 int main() {
     // initialize conversion arrays
@@ -807,7 +833,7 @@ int main() {
     moves move_list[1];
 
     char fen[] = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
-    parse_fen(fen);
+    parse_fen(tricky_position);
 
     print_board();
     generate_moves(move_list);
