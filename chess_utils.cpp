@@ -1,0 +1,350 @@
+#include "chess_utils.h"
+
+#include<chrono>
+
+// returns if the given square is attacked by a user-defined side
+int is_square_attacked(int square, int side) {
+    // pawn attacks
+    if (side == white) {
+        // if target square is on board and white pawn
+        // left pawn attack
+        if (on_board(square + 17) && (board[square + 17] == P)) {
+            return 1;
+        }
+        // right pawn attack
+        if (on_board(square + 15) && (board[square + 15] == P)) {
+            return 1;
+        }
+    } else {
+        // if target square is on board and black pawn
+        // right pawn attack
+        if (on_board(square - 17) && (board[square - 17] == p)) {
+            return 1;
+        }
+        // left pawn attack
+        if (on_board(square - 15) && (board[square - 15] == p)) {
+            return 1;
+        }
+    }
+
+    // knight attacks
+    for (int i = 0; i < 8; ++i) {
+        int target_square = square + knight_offsets[i];
+
+        // lookup target piece
+        int target_piece = board[target_square];
+
+        // if target square is on board
+        if (on_board(target_square)) {
+            // determine if white or black knight is targeting a square (depending on turn)
+            if (side == white ? target_piece == N : target_piece == n) {
+                return 1;
+            }
+        }
+    }
+
+    // king attacks
+    for (int i = 0; i < 8; ++i) {
+        int target_square = square + king_offsets[i];
+
+        // lookup target piece
+        int target_piece = board[target_square];
+
+        // if target square is on board
+        if (on_board(target_square)) {
+            // determine if white or black king is targeting a square (depending on turn)
+            if (side == white ? target_piece == K : target_piece == k) {
+                return 1;
+            }
+        }
+    }
+
+    // bishop and queen diagonal attacks
+    for (int i = 0; i < 4; ++i) {
+        int target_square = square + bishop_offsets[i];
+
+        // loop over attack ray
+        while (on_board(target_square)) {
+            int target_piece = board[target_square];
+
+            // determine if white or black bishop or queen is targeting a square (depending on turn)
+            if (side == white ? (target_piece == B || target_piece == Q) :
+                                (target_piece == b || target_piece == q)) {
+                return 1;
+            }
+
+            // break if hit a piece
+            if (target_piece != e) {
+                break;
+            }
+
+            // increment target square by move offset
+            target_square += bishop_offsets[i];
+        }
+    }
+
+    // rook and queen straight attacks
+    for (int i = 0; i < 4; ++i) {
+        int target_square = square + rook_offsets[i];
+
+        // loop over attack ray
+        while (on_board(target_square)) {
+            int target_piece = board[target_square];
+
+            // determine if white or black bishop or queen is targeting a square (depending on turn)
+            if (side == white ? (target_piece == R || target_piece == Q) :
+                                (target_piece == r || target_piece == q)) {
+                return 1;
+            }
+
+            // break if hit a piece
+            if (target_piece != e) {
+                break;
+            }
+
+            // increment target square by move offset
+            target_square += rook_offsets[i];
+        }
+    }
+
+    return 0;
+}
+
+// print move list
+void print_move_list(moves *move_list) {
+    cout << "\n Moves:   Capture  Double  Enpassant  Castle\n" << endl;
+    // loop over moves in a movelist
+    for (int i = 0; i < move_list->count; ++i) {
+        int move = move_list->moves[i];
+        cout << " " << square_to_coords[get_move_start(move)] << square_to_coords[get_move_target(move)];
+        cout << (get_promoted_piece(move) ? promoted_pieces[get_promoted_piece(move)] : ' ');
+        cout << "    " << get_move_capture(move)
+             << "        " << get_move_pawn(move)
+             << "       " << get_move_enpassant(move)
+             << "          " << get_move_castling(move) << endl;
+    }
+    cout << "\n Number of moves: " << move_list->count << endl;
+}
+
+// prints a board representation of attacked squares
+void print_attacked_squares(int side) {
+    // print indentation
+    cout << endl;
+    cout << "   Attacking side: " << (side == white ? "white" : "black") << endl;
+
+    // loop over board ranks
+    for (int rank = 0; rank < 8; ++rank) {
+        for (int file = 0; file < 16; ++file) {
+            // init square
+            int square = rank * 16 + file;
+
+            // print ranks
+            if (file == 0) {
+                cout << 8 - rank << "  ";
+            }
+
+            // if square is on board
+            if (on_board(square)) {
+                cout << (is_square_attacked(square, side) ? "x " : ". ");
+            }
+        }
+        // print new line every time new rank is encountered
+        cout << endl;
+    }
+    cout << "\n   a b c d e f g h\n\n";
+}
+
+// print board
+void print_board() {
+    // print indentation
+    cout << endl;
+
+    // loop over board ranks
+    for (int rank = 0; rank < 8; ++rank) {
+        for (int file = 0; file < 16; ++file) {
+            // init square
+            int square = rank * 16 + file;
+
+            // print ranks
+            if (file == 0) {
+                cout << 8 - rank << "  ";
+            }
+
+            // if square is on board
+            if (on_board(square)) {
+                //cout << ascii_pieces[board[square]] << " ";
+                cout << ascii_pieces[board[square]] << " ";
+            }
+        }
+        // print new line every time new rank is encountered
+        cout << endl;
+    }
+    // print files
+    cout << "\n   a  b  c  d  e  f  g  h\n\n";
+
+    // print board stats
+    cout << "---------------------------" << endl;
+    cout << " Side: " << ((side == white) ? "white" : "black") << endl;
+    cout << " Castling: " << ((castle & KC) ? 'K' : '-')
+                          << ((castle & QC) ? 'Q' : '-')
+                          << ((castle & kc) ? 'k' : '-')
+                          << ((castle & qc) ? 'q' : '-') << endl;
+    cout << " Enpassant: " << ((enpassant == no_sq) ? "-" : square_to_coords[enpassant]) << endl;
+    cout << " King square: " << square_to_coords[king_square[side]] << endl;
+}
+
+// reset board
+void reset_board() {
+    for (int rank = 0; rank < 8; ++rank) {
+        for (int file = 0; file < 16; ++file) {
+            // init square
+            int square = rank * 16 + file;
+
+            // if square is on board
+            if (on_board(square)) {
+                // reset current board square
+                board[square] = e;
+            }
+        }
+    }
+    // reset stats
+    side = -1;
+    castle = 0;
+    enpassant = no_sq;
+}
+
+// parse FEN
+void parse_fen(char *fen) {
+    // reset board
+    reset_board();
+
+    for (int rank = 0; rank < 8; ++rank) {
+        for (int file = 0; file < 16; ++file) {
+            // init square
+            int square = rank * 16 + file;
+
+            // if square is on board
+            if (on_board(square)) {
+                // match pieces
+                if ((*fen >= 'a' && *fen <= 'z') || (*fen >= 'A' && *fen <= 'Z')) {
+                    // set up kings' square
+                    if (*fen == 'K') {
+                        king_square[white] = square;
+                    } else if (*fen == 'k') {
+                        king_square[black] = square;
+                    }
+                    
+                    // set the piece on the board
+                    board[square] = char_pieces[*fen];
+
+                    // increment FEN pointer to next char
+                    *fen++;
+
+                    // cout << "square: " << square_to_coords[square] << " | current FEN char: " << *fen << endl;
+                }
+                // match empty squares
+                if (*fen >= '0' && *fen <= '9') {
+                    // calculate offset
+                    int offset = *fen - '0';
+
+                    // decrement file on empty squares
+                    if (is_empty_square(square)) {
+                        file--;
+                    }
+
+                    // skip empty squares
+                    file += offset;
+
+                    *fen++;
+                }
+                // match end of rank
+                if (*fen == '/') {
+                    *fen++;
+                }
+            }
+        }
+    }
+    // increment FEN pointer to parse side to move
+    *fen++;
+    side = (*fen == 'w') ? white : black;
+    // increment FEN pointer to parse castling rights
+    fen += 2;
+    while (*fen != ' ') {
+        switch(*fen) {
+            case 'K' : castle |= KC; break;
+            case 'Q' : castle |= QC; break;
+            case 'k' : castle |= kc; break;
+            case 'q' : castle |= qc; break;
+            case '-' : break;
+        }
+        *fen++;
+    }
+    // increment FEN pointer to parse enpassant square
+    *fen++;
+    if (*fen != '-') {
+        int file = fen[0] - 'a';
+        int rank = 8 - (fen[1] - '0');
+        // get enpassant square board index
+        enpassant = rank * 16 + file;
+    } else {
+        enpassant = no_sq;
+    }
+}
+
+// determines if a square is on the board or not
+bool on_board(int square) {
+    return (!(square & 0x88));
+}
+
+// determines if a square is empty or not
+bool is_empty_square(int square) {
+    return (board[square] == e);
+}
+
+// returns true if piece is a white piece
+bool is_white_piece(int piece) {
+    return piece >= P && piece <= K;
+}
+
+// returns true if piece is a black piece
+bool is_black_piece(int piece) {
+    return piece >= p && piece <= k;
+}
+
+// returns true if piece on square is a black piece
+// DOES NOT CHECK IF SQUARE IS ON BOARD
+bool is_black_piece_square(int square) {
+    return board[square] >= p && board[square] <= k;
+}
+
+// returns true if piece on square is a white piece
+// DOES NOT CHECK IF SQUARE IS ON BOARD
+bool is_white_piece_square(int square) {
+    return board[square] >= P && board[square] <= K;
+}
+
+// determines if a square is on the 7th rank
+// (second farthest rank from white)
+bool rank_7(int square) {
+    return (square >= a7 && square <= h7);
+}
+
+// determines if a square is on the 2nd rank
+// (second farthest rank from black)
+bool rank_2(int square) {
+    return (square >= a2 && square <= h2);
+}
+
+// populate move_list
+void add_move(moves *move_list, int move) {
+    // push move into the move list
+    move_list->moves[move_list->count] = move;
+    move_list->count++;
+}
+
+// get time in milliseconds
+int get_time_ms() {
+    auto current_time = std::chrono::system_clock::now();
+    auto duration = current_time.time_since_epoch();
+    return std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+}
