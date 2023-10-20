@@ -37,6 +37,61 @@ void initialize_promoted_pieces() {
     promoted_pieces[n] = 'n';
 }
 
+void generate_pawn_moves(moves *move_list, int square) {
+    // detect if we're generating white or black pawn moves
+    if (side == white ? board[square] == P : board[square] == p) {
+        int target_square = square + (side == white ? -16 : 16);
+
+        // quiet pawn moves
+        if (on_board(target_square) && is_empty_square(target_square)) {
+            // pawn promotions
+            if (side == white ? rank_7(square) : rank_2(square)) {
+                add_move(move_list, encode_move(square, target_square, (side == white ? Q : q), 0, 0, 0, 0));
+                add_move(move_list, encode_move(square, target_square, (side == white ? R : r), 0, 0, 0, 0));
+                add_move(move_list, encode_move(square, target_square, (side == white ? B : b), 0, 0, 0, 0));
+                add_move(move_list, encode_move(square, target_square, (side == white ? N : n), 0, 0, 0, 0));
+            } else {
+                // one square pawn move
+                add_move(move_list, encode_move(square, target_square, 0, 0, 0, 0, 0));
+                // two square pawn move
+                int pawn_move_offset = (side == white ? -32 : 32);
+                if ((side == white ? rank_2(square) : rank_7(square)) && is_empty_square(square + pawn_move_offset)) {
+                    add_move(move_list, encode_move(square, square + pawn_move_offset, 0, 0, 1, 0, 0));
+                }
+            }
+        }
+        // pawn captures (using bishop offsets b/c they're the same as pawns)
+        for (int i = 0; i < 4; ++i) {
+            // init pawn offset
+            int pawn_offset = bishop_offsets[i];
+            
+            if ((side == white ? pawn_offset < 0 : pawn_offset > 0)) {
+                int target_square = square + pawn_offset;
+                // check if target square is on board
+                if (on_board(target_square)) {
+                    // capture pawn promotion
+                    bool capture_side = (side == white ? is_black_piece_square(target_square) : is_white_piece_square(target_square));
+                    if ((side == white ? rank_7(square) : rank_2(square)) && capture_side) {
+                        add_move(move_list, encode_move(square, target_square, (side == white ? Q : q), 1, 0, 0, 0));
+                        add_move(move_list, encode_move(square, target_square, (side == white ? R : r), 1, 0, 0, 0));
+                        add_move(move_list, encode_move(square, target_square, (side == white ? B : b), 1, 0, 0, 0));
+                        add_move(move_list, encode_move(square, target_square, (side == white ? N : n), 1, 0, 0, 0));
+                    } else {
+                        // normal capture
+                        if (capture_side) {
+                            add_move(move_list, encode_move(square, target_square, 0, 1, 0, 0, 0));
+                        }
+                        // enpassant capture
+                        if (target_square == enpassant) {
+                            add_move(move_list, encode_move(square, target_square, 0, 1, 0, 1, 0));
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 // move generator
 void generate_moves(moves *move_list) {
     // reset move count
@@ -44,59 +99,9 @@ void generate_moves(moves *move_list) {
     // loop over all board squares
     for (int square = 0; square < 128; ++square) {
         if (on_board(square)) {
+            generate_pawn_moves(move_list, square);
             // white pawn and castling moves
             if (side == white) {
-                // white pawn moves
-                if (board[square] == P) {
-                    int target_square = square - 16;
-                    // quiet pawn moves (moves that aren't capturing)
-                    // check if target square is on board
-                    if (on_board(target_square) && is_empty_square(target_square)) {
-                        // pawn promotions (make sure pawns are on 7th rank)
-                        if (rank_7(square)) {
-                            add_move(move_list, encode_move(square, target_square, Q, 0, 0, 0, 0));
-                            add_move(move_list, encode_move(square, target_square, R, 0, 0, 0, 0));
-                            add_move(move_list, encode_move(square, target_square, B, 0, 0, 0, 0));
-                            add_move(move_list, encode_move(square, target_square, N, 0, 0, 0, 0));
-                        } else {
-                            // one square ahead pawn move
-                            add_move(move_list, encode_move(square, target_square, 0, 0, 0, 0, 0));
-                            // two squares ahead pawn move (make sure pawns are on 2nd rank)
-                            if (rank_2(square) && is_empty_square(square - 32)) {
-                                add_move(move_list, encode_move(square, square - 32, 0, 0, 1, 0, 0));
-                            }
-                        }
-                    }
-                    // white pawn captures (using bishop offsets b/c they're the same as pawns)
-                    for (int i = 0; i < 4; ++i) {
-                        // init pawn offset
-                        int pawn_offset = bishop_offsets[i];
-                        
-                        // white pawn offsets
-                        if (pawn_offset < 0) {
-                            int target_square = square + pawn_offset;
-                            // check if target square is on board
-                            if (on_board(target_square)) {
-                                // capture pawn promotion
-                                if (rank_7(square) && is_black_piece_square(target_square)) {
-                                    add_move(move_list, encode_move(square, target_square, Q, 1, 0, 0, 0));
-                                    add_move(move_list, encode_move(square, target_square, R, 1, 0, 0, 0));
-                                    add_move(move_list, encode_move(square, target_square, B, 1, 0, 0, 0));
-                                    add_move(move_list, encode_move(square, target_square, N, 1, 0, 0, 0));
-                                } else {
-                                    // normal capture
-                                    if (is_black_piece_square(target_square)) {
-                                        add_move(move_list, encode_move(square, target_square, 0, 1, 0, 0, 0));
-                                    }
-                                    // enpassant capture
-                                    if (target_square == enpassant) {
-                                        add_move(move_list, encode_move(square, target_square, 0, 1, 0, 1, 0));
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
                 // white king castling
                 if (board[square] == K) {
                     // if king side castling is available
@@ -123,56 +128,6 @@ void generate_moves(moves *move_list) {
             } 
             // black pawn and castling moves
             else {
-                // black pawn moves (moves that aren't capturing)
-                if (board[square] == p) {
-                    int target_square = square + 16;
-                    // check if target square is on board
-                    if (on_board(target_square) && is_empty_square(target_square)) {
-                        // pawn promotions (make sure pawns are on 2nd rank)
-                        if (rank_2(square)) {
-                            add_move(move_list, encode_move(square, target_square, q, 0, 0, 0, 0));
-                            add_move(move_list, encode_move(square, target_square, r, 0, 0, 0, 0));
-                            add_move(move_list, encode_move(square, target_square, b, 0, 0, 0, 0));
-                            add_move(move_list, encode_move(square, target_square, n, 0, 0, 0, 0));
-                        } else {
-                            // one square ahead pawn move
-                            add_move(move_list, encode_move(square, target_square, 0, 0, 0, 0, 0));
-                            // two squares ahead pawn move (make sure pawns are on 7th rank)
-                            if (rank_7(square) && is_empty_square(square + 32)) {
-                                add_move(move_list, encode_move(square, square + 32, 0, 0, 1, 0, 0));
-                            }
-                        }
-                    }
-                    // black pawn captures (using bishop offsets b/c they're the same as pawns)
-                    for (int i = 0; i < 4; ++i) {
-                        // init pawn offset
-                        int pawn_offset = bishop_offsets[i];
-                        
-                        // black pawn offsets
-                        if (pawn_offset > 0) {
-                            int target_square = square + pawn_offset;
-                            // check if target square is on board
-                            if (on_board(target_square)) {
-                                // capture pawn promotion
-                                if (rank_2(square) && is_white_piece_square(target_square)) {
-                                    add_move(move_list, encode_move(square, target_square, q, 1, 0, 0, 0));
-                                    add_move(move_list, encode_move(square, target_square, r, 1, 0, 0, 0));
-                                    add_move(move_list, encode_move(square, target_square, b, 1, 0, 0, 0));
-                                    add_move(move_list, encode_move(square, target_square, n, 1, 0, 0, 0));
-                                } else {
-                                    // normal capture
-                                    if (is_white_piece_square(target_square)) {
-                                        add_move(move_list, encode_move(square, target_square, 0, 1, 0, 0, 0));
-                                    }
-                                    // enpassant capture
-                                    if (target_square == enpassant) {
-                                        add_move(move_list, encode_move(square, target_square, 0, 1, 0, 1, 0));
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
                 // black king castling
                 if (board[square] == k) {
                     // if king side castling is available
@@ -197,6 +152,7 @@ void generate_moves(moves *move_list) {
                     }
                 }
             }
+            // COMBINE KNIGHT AND KING MOVES
             // knight moves
             if (side == white ? board[square] == N : board[square] == n) {
                 // loop over knight offsets
@@ -222,7 +178,7 @@ void generate_moves(moves *move_list) {
             }
             // king moves
             if (side == white ? board[square] == K : board[square] == k) {
-                // loop over knight offsets
+                // loop over king offsets
                 for (int i = 0; i < 8; ++i) {
                     int target_square = square + king_offsets[i];
                     int target_piece = board[target_square];
@@ -482,7 +438,7 @@ int main() {
     parse_fen(fen);
     print_board();
 
-    perft_test(3);
+    perft_test(5);
 
     return 0;
 }
