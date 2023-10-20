@@ -37,6 +37,7 @@ void initialize_promoted_pieces() {
     promoted_pieces[n] = 'n';
 }
 
+// generate all pawn moves
 void generate_pawn_moves(moves *move_list, int square) {
     // detect if we're generating white or black pawn moves
     if (side == white ? board[square] == P : board[square] == p) {
@@ -92,6 +93,48 @@ void generate_pawn_moves(moves *move_list, int square) {
     }
 }
 
+// generate all castle moves
+void generate_castle_moves(moves *move_list, int square) {
+    // detect if we're generating white or black castling moves
+    if (side == white ? board[square] == K : board[square] == k) {
+        // king side castling
+        if (side == white ? castle & KC : castle & kc) {
+            // get castling squares
+            int squares[3] = {e8, f8, g8};
+            if (side == white) {
+                squares[0] = e1;
+                squares[1] = f1;
+                squares[2] = g1;
+            }
+            // make sure there are empty squares between king & rook
+            if ((board[squares[1]] == e && board[squares[2]] == e)) {
+                int side_attacked = (side == white ? black : white);
+                if (!is_square_attacked(squares[0], side_attacked) && !is_square_attacked(squares[1], side_attacked)) {
+                    add_move(move_list, encode_move(squares[0], squares[2], 0, 0, 0, 0, 1));
+                }
+            }
+        }
+        // if queen side castling is available
+        if (side == white ? castle & QC : castle & qc) {
+            // get castling squares
+            int squares[4] = {b8, c8, d8, e8};
+            if (side == white) {
+                squares[0] = b1;
+                squares[1] = c1;
+                squares[2] = d1;
+                squares[3] = e1;
+            }
+            // make sure there are empty squares between king & rook
+            if (board[squares[0]] == e && board[squares[1]] == e && board[squares[2]] == e) {
+                // make sure king & next squares are not under attack
+                if (!is_square_attacked(squares[3], black) && !is_square_attacked(squares[2], black)) {
+                    add_move(move_list, encode_move(squares[3], squares[1], 0, 0, 0, 0, 1));
+                }
+            }
+        }
+    }
+}
+
 // move generator
 void generate_moves(moves *move_list) {
     // reset move count
@@ -100,58 +143,8 @@ void generate_moves(moves *move_list) {
     for (int square = 0; square < 128; ++square) {
         if (on_board(square)) {
             generate_pawn_moves(move_list, square);
-            // white pawn and castling moves
-            if (side == white) {
-                // white king castling
-                if (board[square] == K) {
-                    // if king side castling is available
-                    if (castle & KC) {
-                        // make sure there are empty squares between king & rook
-                        if (board[f1] == e && board[g1] == e) {
-                            // make sure king & next squares are not under attack
-                            if (!is_square_attacked(e1, black) && !is_square_attacked(f1, black)) {
-                                add_move(move_list, encode_move(e1, g1, 0, 0, 0, 0, 1));
-                            }
-                        }
-                    }
-                    // if queen side castling is available
-                    if (castle & QC) {
-                        // make sure there are empty squares between king & rook
-                        if (board[b1] == e && board[c1] == e && board[d1] == e) {
-                            // make sure king & next squares are not under attack
-                            if (!is_square_attacked(e1, black) && !is_square_attacked(d1, black)) {
-                                add_move(move_list, encode_move(e1, c1, 0, 0, 0, 0, 1));
-                            }
-                        }
-                    }
-                }
-            } 
-            // black pawn and castling moves
-            else {
-                // black king castling
-                if (board[square] == k) {
-                    // if king side castling is available
-                    if (castle & kc) {
-                        // make sure there are empty squares between king & rook
-                        if (board[f8] == e && board[g8] == e) {
-                            // make sure king & next squares are not under attack
-                            if (!is_square_attacked(e8, white) && !is_square_attacked(f8, white)) {
-                                add_move(move_list, encode_move(e8, g8, 0, 0, 0, 0, 1));
-                            }
-                        }
-                    }
-                    // if queen side castling is available
-                    if (castle & qc) {
-                        // make sure there are empty squares between king & rook
-                        if (board[b8] == e && board[c8] == e && board[d8] == e) {
-                            // make sure king & next squares are not under attack
-                            if (!is_square_attacked(e8, white) && !is_square_attacked(d8, white)) {
-                                add_move(move_list, encode_move(e8, c8, 0, 0, 0, 0, 1));
-                            }
-                        }
-                    }
-                }
-            }
+            generate_castle_moves(move_list, square);
+
             // COMBINE KNIGHT AND KING MOVES
             // knight moves
             if (side == white ? board[square] == N : board[square] == n) {
@@ -438,7 +431,7 @@ int main() {
     parse_fen(fen);
     print_board();
 
-    perft_test(5);
+    perft_test(4);
 
     return 0;
 }
