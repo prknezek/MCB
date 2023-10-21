@@ -135,6 +135,41 @@ void generate_castle_moves(moves *move_list, int square) {
     }
 }
 
+// generates all knight and king moves
+void generate_NK_moves(moves *move_list, int square, int piece) {
+    int piece1, piece2;
+    if (piece == N || piece == n) {
+        piece1 = N;
+        piece2 = n;
+    } else {
+        piece1 = K;
+        piece2 = k;
+    }
+
+    if (side == white ? board[square] == piece1 : board[square] == piece2) {
+        // loop over knight offsets
+        for (int i = 0; i < 8; ++i) {
+            int target_square = square + (piece1 == N ? knight_offsets[i] : king_offsets[i]);
+            int target_piece = board[target_square];
+            
+            if (on_board(target_square)) {
+                if (side == white ?
+                    (is_empty_square(target_square) || is_black_piece(target_piece)) :
+                    (is_empty_square(target_square) || is_white_piece(target_piece))) {
+                    // test if we are capturing
+                    if (target_piece != e) {
+                        add_move(move_list, encode_move(square, target_square, 0, 1, 0, 0, 0));
+                    }
+                    // moving to empty square
+                    else {
+                        add_move(move_list, encode_move(square, target_square, 0, 0, 0, 0, 0));
+                    }
+                }
+            }
+        }
+    }
+}
+
 // move generator
 void generate_moves(moves *move_list) {
     // reset move count
@@ -144,54 +179,9 @@ void generate_moves(moves *move_list) {
         if (on_board(square)) {
             generate_pawn_moves(move_list, square);
             generate_castle_moves(move_list, square);
-
-            // COMBINE KNIGHT AND KING MOVES
-            // knight moves
-            if (side == white ? board[square] == N : board[square] == n) {
-                // loop over knight offsets
-                for (int i = 0; i < 8; ++i) {
-                    int target_square = square + knight_offsets[i];
-                    int target_piece = board[target_square];
-                    
-                    if (on_board(target_square)) {
-                        if (side == white ?
-                           (is_empty_square(target_square) || is_black_piece(target_piece)) :
-                           (is_empty_square(target_square) || is_white_piece(target_piece))) {
-                            // test if we are capturing
-                            if (target_piece != e) {
-                                add_move(move_list, encode_move(square, target_square, 0, 1, 0, 0, 0));
-                            }
-                            // moving to empty square
-                            else {
-                                add_move(move_list, encode_move(square, target_square, 0, 0, 0, 0, 0));
-                            }
-                        }
-                    }
-                }
-            }
-            // king moves
-            if (side == white ? board[square] == K : board[square] == k) {
-                // loop over king offsets
-                for (int i = 0; i < 8; ++i) {
-                    int target_square = square + king_offsets[i];
-                    int target_piece = board[target_square];
-                    
-                    if (on_board(target_square)) {
-                        if (side == white ?
-                           (is_empty_square(target_square) || is_black_piece(target_piece)) :
-                           (is_empty_square(target_square) || is_white_piece(target_piece))) {
-                            // test if we are capturing
-                            if (target_piece != e) {
-                                add_move(move_list, encode_move(square, target_square, 0, 1, 0, 0, 0));
-                            }
-                            // moving to empty square
-                            else {
-                                add_move(move_list, encode_move(square, target_square, 0, 0, 0, 0, 0));
-                            }
-                        }
-                    }
-                }
-            }
+            generate_NK_moves(move_list, square, N);
+            generate_NK_moves(move_list, square, K);
+            
             // bishop & queen moves
             if (side == white ?
                 ((board[square] == B) || (board[square] == Q)) :
