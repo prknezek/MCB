@@ -136,20 +136,11 @@ void generate_castle_moves(moves *move_list, int square) {
 }
 
 // generates all knight and king moves
-void generate_NK_moves(moves *move_list, int square, int piece) {
-    int piece1, piece2;
-    if (piece == N || piece == n) {
-        piece1 = N;
-        piece2 = n;
-    } else {
-        piece1 = K;
-        piece2 = k;
-    }
-
-    if (side == white ? board[square] == piece1 : board[square] == piece2) {
+void generate_NK_moves(moves *move_list, int square, int white_piece, int black_piece) {
+    if (side == white ? board[square] == white_piece : board[square] == black_piece) {
         // loop over knight offsets
         for (int i = 0; i < 8; ++i) {
-            int target_square = square + (piece1 == N ? knight_offsets[i] : king_offsets[i]);
+            int target_square = square + (white_piece == N ? knight_offsets[i] : king_offsets[i]);
             int target_piece = board[target_square];
             
             if (on_board(target_square)) {
@@ -170,6 +161,37 @@ void generate_NK_moves(moves *move_list, int square, int piece) {
     }
 }
 
+void generate_QBR_moves(moves *move_list, int square, int white_piece, int black_piece) {
+    // bishop & queen moves
+    if (side == white ?
+        ((board[square] == white_piece) || (board[square] == Q)) :
+        ((board[square] == black_piece) || (board[square] == q))) {
+        // loop over bishop & queen offsets
+        for (int i = 0; i < 4; ++i) {
+            int target_square = square + (white_piece == B ? bishop_offsets[i] : rook_offsets[i]);
+            // loop over attack ray
+            while (on_board(target_square)) {
+                int target_piece = board[target_square];
+                // if hits own piece
+                if (side == white ? is_white_piece(target_piece) : is_black_piece(target_piece)) {
+                    break;
+                }
+                // if hits enemy piece
+                if (side == white ? is_black_piece(target_piece) : is_white_piece(target_piece)) {
+                    add_move(move_list, encode_move(square, target_square, 0, 1, 0, 0, 0));
+                    break;
+                }
+                // if empty square
+                if (is_empty_square(target_square)) {
+                    add_move(move_list, encode_move(square, target_square, 0, 0, 0, 0, 0));
+                }
+                // increment target square
+                target_square += (white_piece == B ? bishop_offsets[i] : rook_offsets[i]);
+            }
+        }
+    }
+}
+
 // move generator
 void generate_moves(moves *move_list) {
     // reset move count
@@ -179,65 +201,10 @@ void generate_moves(moves *move_list) {
         if (on_board(square)) {
             generate_pawn_moves(move_list, square);
             generate_castle_moves(move_list, square);
-            generate_NK_moves(move_list, square, N);
-            generate_NK_moves(move_list, square, K);
-            
-            // bishop & queen moves
-            if (side == white ?
-                ((board[square] == B) || (board[square] == Q)) :
-                ((board[square] == b) || (board[square] == q))) {
-                // loop over bishop & queen offsets
-                for (int i = 0; i < 4; ++i) {
-                    int target_square = square + bishop_offsets[i];
-                    // loop over attack ray
-                    while (on_board(target_square)) {
-                        int target_piece = board[target_square];
-                        // if hits own piece
-                        if (side == white ? is_white_piece(target_piece) : is_black_piece(target_piece)) {
-                            break;
-                        }
-                        // if hits enemy piece
-                        if (side == white ? is_black_piece(target_piece) : is_white_piece(target_piece)) {
-                            add_move(move_list, encode_move(square, target_square, 0, 1, 0, 0, 0));
-                            break;
-                        }
-                        // if empty square
-                        if (is_empty_square(target_square)) {
-                            add_move(move_list, encode_move(square, target_square, 0, 0, 0, 0, 0));
-                        }
-                        // increment target square
-                        target_square += bishop_offsets[i];
-                    }
-                }
-            }
-            // rook & queen moves
-            if (side == white ?
-                ((board[square] == R) || (board[square] == Q)) :
-                ((board[square] == r) || (board[square] == q))) {
-                // loop over rook & queen offsets
-                for (int i = 0; i < 4; ++i) {
-                    int target_square = square + rook_offsets[i];
-                    // loop over attack ray
-                    while (on_board(target_square)) {
-                        int target_piece = board[target_square];
-                        // if hits own piece
-                        if (side == white ? is_white_piece(target_piece) : is_black_piece(target_piece)) {
-                            break;
-                        }
-                        // if hits enemy piece
-                        if (side == white ? is_black_piece(target_piece) : is_white_piece(target_piece)) {
-                            add_move(move_list, encode_move(square, target_square, 0, 1, 0, 0, 0));
-                            break;
-                        }
-                        // if empty square
-                        if (is_empty_square(target_square)) {
-                            add_move(move_list, encode_move(square, target_square, 0, 0, 0, 0, 0));
-                        }
-                        // increment target square
-                        target_square += rook_offsets[i];
-                    }
-                }
-            }
+            generate_NK_moves(move_list, square, N, n);
+            generate_NK_moves(move_list, square, K, k);
+            generate_QBR_moves(move_list, square, B, b);
+            generate_QBR_moves(move_list, square, R, r);
         }
     }
 }
