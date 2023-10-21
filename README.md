@@ -6,6 +6,6 @@ This bot follows the "0x88 MOVE GENERATOR (Wukong)" tutorial series made by <a h
 Since 10/18/2023 the tutorial has been completed.
 Future Implementations:
 - Implement repetition draw detection
-- Make the bot UCI complient (GUI)
+- Make the bot UCI compliant (GUI)
 - Implement the search and evaluation functions
 - Transposition tables
