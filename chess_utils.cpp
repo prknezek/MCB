@@ -27,38 +27,6 @@ int is_square_attacked(int square, int side) {
         }
     }
 
-    // knight attacks
-    for (int i = 0; i < 8; ++i) {
-        int target_square = square + knight_offsets[i];
-
-        // lookup target piece
-        int target_piece = board[target_square];
-
-        // if target square is on board
-        if (on_board(target_square)) {
-            // determine if white or black knight is targeting a square (depending on turn)
-            if (side == white ? target_piece == N : target_piece == n) {
-                return 1;
-            }
-        }
-    }
-
-    // king attacks
-    for (int i = 0; i < 8; ++i) {
-        int target_square = square + king_offsets[i];
-
-        // lookup target piece
-        int target_piece = board[target_square];
-
-        // if target square is on board
-        if (on_board(target_square)) {
-            // determine if white or black king is targeting a square (depending on turn)
-            if (side == white ? target_piece == K : target_piece == k) {
-                return 1;
-            }
-        }
-    }
-
     // bishop and queen diagonal attacks
     for (int i = 0; i < 4; ++i) {
         int target_square = square + bishop_offsets[i];
@@ -104,6 +72,38 @@ int is_square_attacked(int square, int side) {
 
             // increment target square by move offset
             target_square += rook_offsets[i];
+        }
+    }
+
+    // knight attacks
+    for (int i = 0; i < 8; ++i) {
+        int target_square = square + knight_offsets[i];
+
+        // lookup target piece
+        int target_piece = board[target_square];
+
+        // if target square is on board
+        if (on_board(target_square)) {
+            // determine if white or black knight is targeting a square (depending on turn)
+            if (side == white ? target_piece == N : target_piece == n) {
+                return 1;
+            }
+        }
+    }
+
+    // king attacks
+    for (int i = 0; i < 8; ++i) {
+        int target_square = square + king_offsets[i];
+
+        // lookup target piece
+        int target_piece = board[target_square];
+
+        // if target square is on board
+        if (on_board(target_square)) {
+            // determine if white or black king is targeting a square (depending on turn)
+            if (side == white ? target_piece == K : target_piece == k) {
+                return 1;
+            }
         }
     }
 
