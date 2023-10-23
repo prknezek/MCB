@@ -493,18 +493,18 @@ int evaluate() {
             }
         }
     }
-    return score;
+    return score * (side == white ? 1 : -1);
 }
 
 int CHECKMATE = std::numeric_limits<int>::max();
-int DEPTH = 5;
+int DEPTH = 1;
 int NEXT_MOVE = 0;
 
 // nega max function
-int nega_max(int depth, int alpha, int beta, int turn_multiplier) {
+int nega_max(int depth, int alpha, int beta) {
     // base case we evaluate final board position
     if (depth == 0) {
-        return turn_multiplier * evaluate();
+        return evaluate();
     }
 
     int max = -CHECKMATE;
@@ -527,7 +527,7 @@ int nega_max(int depth, int alpha, int beta, int turn_multiplier) {
             continue;
         }
 
-        int score = -1 * nega_max(depth - 1, -beta, -alpha, -turn_multiplier);
+        int score = -1 * nega_max(depth - 1, -beta, -alpha);
         
         if (score > max) {
             max = score;
@@ -563,11 +563,11 @@ int main() {
     initialize_promoted_pieces();
 
     // parse fen string
-    char fen[] = "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8";
+    char fen[] = "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R b KQ - 1 8";
     parse_fen(fen);
     print_board();
 
-    cout << "\n" << nega_max(DEPTH, -CHECKMATE, CHECKMATE, side == white ? 1 : -1) << endl;
+    cout << "\n" << nega_max(DEPTH, -CHECKMATE, CHECKMATE) << endl;
     //perft_test(4);
 
     return 0;
