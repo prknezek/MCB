@@ -548,7 +548,7 @@ void order_moves(moves *move_list) {
 }
 
 int CHECKMATE = numeric_limits<int>::max();
-int DEPTH = 5;
+int DEPTH = 4;
 int NEXT_MOVE = 0;
 int nodes = 0;
 
@@ -588,7 +588,7 @@ int nega_max(int depth, int alpha, int beta) {
         if (score > max) {
             max = score;
             if (depth == DEPTH) {
-                cout << "Next move: ";
+                cout << "\nNext move: ";
                 print_move(move_list->moves[i]);
                 cout << "Score: " << score << endl;
                 NEXT_MOVE = move_list->moves[i];
@@ -619,7 +619,7 @@ int main() {
     initialize_promoted_pieces();
 
     // parse fen string
-    char fen[] = "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R b KQ - 1 8";
+    char fen[] = "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8";
     parse_fen(fen);
     print_board();
 
@@ -628,7 +628,7 @@ int main() {
     // order_moves(move_list);
     
     int start_time = get_time_ms();
-    cout << "\n" << nega_max(DEPTH, -CHECKMATE, CHECKMATE) << endl;
+    nega_max(DEPTH, -CHECKMATE, CHECKMATE);
     cout << "Nodes: " << nodes << endl;
     cout << "Time: " << get_time_ms() - start_time << "ms" << endl;
     //perft_test(4);
