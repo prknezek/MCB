@@ -480,8 +480,6 @@ void perft_test(int depth) {
     cout << " Nodes: " << nodes << endl;
     cout << " Time: " << get_time_ms() - start_time << "ms" << endl;
 }
-//                     e, P, N, B, R, Q, K, p, n, b, r, q, k, o
-int piece_value[14] = {0, 1, 3, 3, 5, 9, 0, 1, 3, 3, 5, 9, 0, 0};
 
 // score the board based on material
 int evaluate() {

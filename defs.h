@@ -76,4 +76,6 @@ extern int bishop_offsets[4];
 extern int rook_offsets[4];
 extern int king_offsets[8];
 
+extern int piece_value[14];
+
 #endif
