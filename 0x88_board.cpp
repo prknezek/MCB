@@ -1,8 +1,17 @@
 // headers
-#include <stdio.h>
-#include <iostream>
+#include<stdio.h>
+#include<iostream>
 #include<limits>
+#include<vector>
+#include<utility>
+#include<algorithm>
 #include "chess_utils.h"
+
+using std::vector;
+using std::pair;
+using std::numeric_limits;
+using std::sort;
+using std::make_pair;
 
 // FEN debug positions
 char start_position[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -496,14 +505,58 @@ int evaluate() {
     return score * (side == white ? 1 : -1);
 }
 
-int CHECKMATE = std::numeric_limits<int>::max();
-int DEPTH = 1;
+// order moves for a more efficient negamax function 
+void order_moves(moves *move_list) {
+    // create a vector of pairs to store the move and its score
+    vector<pair<int, int>> move_scores;
+
+    for (int i = 0; i < move_list->count; ++i) {
+        int move = move_list->moves[i];
+
+        int move_score = 0;
+        int move_piece = board[get_move_start(move)];
+        int capture_piece = board[get_move_target(move)];
+        
+        // prioritize capturing opponent's most valuable piece with out least valuable piece
+        if (capture_piece != e) {
+            move_score = 10 * piece_value[capture_piece] - piece_value[move_piece];
+        }
+
+        // promoting a pawn is likely a good move
+        if (get_promoted_piece(move) != e) {
+            move_score += piece_value[get_promoted_piece(move)];
+        }
+
+        // penalize moving pieces to a square that's attacked by an opponent pawn
+        if (is_square_attacked_pawn(get_move_target(move), side ^ 1)) {
+            move_score -= piece_value[move_piece];
+        }
+
+        // add the move and its score to the vector
+        move_scores.push_back(make_pair(move, move_score));
+    }
+
+    // sort the vector based on the move score (in descending order)
+    sort(move_scores.begin(), move_scores.end(), [](const pair<int, int>& a, const pair<int, int>& b) {
+        return a.second > b.second;
+    });
+
+    // update the move_list with the sorted moves
+    for (int i = 0; i < move_list->count; ++i) {
+        move_list->moves[i] = move_scores[i].first;
+    }
+}
+
+int CHECKMATE = numeric_limits<int>::max();
+int DEPTH = 5;
 int NEXT_MOVE = 0;
+int nodes = 0;
 
 // nega max function
 int nega_max(int depth, int alpha, int beta) {
     // base case we evaluate final board position
     if (depth == 0) {
+        nodes++;
         return evaluate();
     }
 
@@ -511,6 +564,8 @@ int nega_max(int depth, int alpha, int beta) {
     moves move_list[1];
     // generate all possible moves at current board position
     generate_moves(move_list);
+    // order moves based on heuristics
+    order_moves(move_list);
     // go through all possible moves
     for (int i = 0; i < move_list->count; i++) {
         // create board state copy variables
@@ -527,6 +582,7 @@ int nega_max(int depth, int alpha, int beta) {
             continue;
         }
 
+        nodes++;
         int score = -1 * nega_max(depth - 1, -beta, -alpha);
         
         if (score > max) {
@@ -567,7 +623,14 @@ int main() {
     parse_fen(fen);
     print_board();
 
+    // moves move_list[1];
+    // generate_moves(move_list);
+    // order_moves(move_list);
+    
+    int start_time = get_time_ms();
     cout << "\n" << nega_max(DEPTH, -CHECKMATE, CHECKMATE) << endl;
+    cout << "Nodes: " << nodes << endl;
+    cout << "Time: " << get_time_ms() - start_time << "ms" << endl;
     //perft_test(4);
 
     return 0;

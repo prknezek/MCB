@@ -110,6 +110,31 @@ int is_square_attacked(int square, int side) {
     return 0;
 }
 
+int is_square_attacked_pawn(int square, int side) {
+    // pawn attacks
+    if (side == white) {
+        // if target square is on board and white pawn
+        // left pawn attack
+        if (on_board(square + 17) && (board[square + 17] == P)) {
+            return 1;
+        }
+        // right pawn attack
+        if (on_board(square + 15) && (board[square + 15] == P)) {
+            return 1;
+        }
+    } else {
+        // if target square is on board and black pawn
+        // right pawn attack
+        if (on_board(square - 17) && (board[square - 17] == p)) {
+            return 1;
+        }
+        // left pawn attack
+        if (on_board(square - 15) && (board[square - 15] == p)) {
+            return 1;
+        }
+    }
+}
+
 // print move list
 void print_move_list(moves *move_list) {
     cout << "\n Moves:   Capture  Double  Enpassant  Castle\n" << endl;
