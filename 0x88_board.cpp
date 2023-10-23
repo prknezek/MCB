@@ -515,6 +515,9 @@ void order_moves(moves *move_list) {
         int move_piece = board[get_move_start(move)];
         int capture_piece = board[get_move_target(move)];
         
+        // prioritze checks
+
+
         // prioritize capturing opponent's most valuable piece with out least valuable piece
         if (capture_piece != e) {
             move_score = 10 * piece_value[capture_piece] - piece_value[move_piece];
@@ -562,6 +565,7 @@ int nega_max(int depth, int alpha, int beta) {
     moves move_list[1];
     // generate all possible moves at current board position
     generate_moves(move_list);
+
     // order moves based on heuristics
     order_moves(move_list);
     // go through all possible moves
@@ -576,8 +580,18 @@ int nega_max(int depth, int alpha, int beta) {
         memcpy(king_square_copy, king_square, 8);
 
         // if we make an illegal move skip it
+        int legal_moves = move_list->count;
         if (!make_move(move_list->moves[i], all_moves)) {
+            legal_moves--;
             continue;
+        }
+
+        // check for checkmate or stalemate
+        if (legal_moves == 0) {
+            if (in_check(side ^ 1)) {
+                return -CHECKMATE;
+            }
+            return 0;
         }
 
         nodes++;
@@ -617,19 +631,15 @@ int main() {
     initialize_promoted_pieces();
 
     // parse fen string
-    char fen[] = "rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8";
-    parse_fen(fen);
+    char fen[] = "8/p3N2k/1p6/1P3Np1/P1B1P1Pn/8/5K2/3r3q b - - 3 48";
+    parse_fen(tricky_position);
     print_board();
-
-    // moves move_list[1];
-    // generate_moves(move_list);
-    // order_moves(move_list);
     
+    // get best next move
     int start_time = get_time_ms();
     nega_max(DEPTH, -CHECKMATE, CHECKMATE);
     cout << "Nodes: " << nodes << endl;
     cout << "Time: " << get_time_ms() - start_time << "ms" << endl;
-    //perft_test(4);
 
     return 0;
 }

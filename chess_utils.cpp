@@ -110,6 +110,12 @@ int is_square_attacked(int square, int side) {
     return 0;
 }
 
+// returns if king is in check by user-defined side (modified square attack function)
+int in_check(int side) {
+    is_square_attacked(king_square[side ^ 1], side);
+}
+
+// returns if the given square is attacked by a pawn
 int is_square_attacked_pawn(int square, int side) {
     // pawn attacks
     if (side == white) {
