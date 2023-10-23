@@ -126,6 +126,17 @@ void print_move_list(moves *move_list) {
     cout << "\n Number of moves: " << move_list->count << endl;
 }
 
+// print move
+void print_move(int move) {
+    cout << "\n Moves:   Capture  Double  Enpassant  Castle\n" << endl;
+    cout << " " << square_to_coords[get_move_start(move)] << square_to_coords[get_move_target(move)];
+    cout << (get_promoted_piece(move) ? promoted_pieces[get_promoted_piece(move)] : ' ');
+    cout << "    " << get_move_capture(move)
+            << "        " << get_move_pawn(move)
+            << "       " << get_move_enpassant(move)
+            << "          " << get_move_castling(move) << endl;
+}
+
 // prints a board representation of attacked squares
 void print_attacked_squares(int side) {
     // print indentation
@@ -173,7 +184,7 @@ void print_board() {
             // if square is on board
             if (on_board(square)) {
                 //cout << ascii_pieces[board[square]] << " ";
-                cout << ascii_pieces[board[square]] << " ";
+                cout << ascii_pieces[board[square]] << "  ";
             }
         }
         // print new line every time new rank is encountered

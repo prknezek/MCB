@@ -63,6 +63,7 @@ extern bool is_empty_square(int square);
 extern int is_square_attacked(int square, int side);
 
 extern void print_move_list(moves *move_list);
+extern void print_move(int move);
 extern void print_attacked_squares(int side);
 extern void print_board();
 

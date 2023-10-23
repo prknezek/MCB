@@ -1,6 +1,7 @@
 // headers
 #include <stdio.h>
 #include <iostream>
+#include<limits>
 #include "chess_utils.h"
 
 // FEN debug positions
@@ -470,6 +471,90 @@ void perft_test(int depth) {
     cout << " Nodes: " << nodes << endl;
     cout << " Time: " << get_time_ms() - start_time << "ms" << endl;
 }
+//                     e, P, N, B, R, Q, K, p, n, b, r, q, k, o
+int piece_value[14] = {0, 1, 3, 3, 5, 9, 0, 1, 3, 3, 5, 9, 0, 0};
+
+// score the board based on material
+int evaluate() {
+    int score = 0;
+    // loop over all board squares
+    for (int square = 0; square < 128; ++square) {
+        // if square is on board
+        if (on_board(square)) {
+            // if square is not empty
+            if (board[square] != e) {
+                if (is_white_piece(board[square])) {
+                    // add piece value to score
+                    score += piece_value[board[square]];
+                } else {
+                    // subtract piece value from score
+                    score -= piece_value[board[square]];
+                }
+            }
+        }
+    }
+    return score;
+}
+
+int CHECKMATE = std::numeric_limits<int>::max();
+int DEPTH = 5;
+int NEXT_MOVE = 0;
+
+// nega max function
+int nega_max(int depth, int alpha, int beta, int turn_multiplier) {
+    // base case we evaluate final board position
+    if (depth == 0) {
+        return turn_multiplier * evaluate();
+    }
+
+    int max = -CHECKMATE;
+    moves move_list[1];
+    // generate all possible moves at current board position
+    generate_moves(move_list);
+    // go through all possible moves
+    for (int i = 0; i < move_list->count; i++) {
+        // create board state copy variables
+        int board_copy[128], king_square_copy[2];
+        int side_copy, enpassant_copy, castle_copy;
+
+        // copy board state
+        memcpy(board_copy, board, 512);
+        side_copy = side, enpassant_copy = enpassant, castle_copy = castle;
+        memcpy(king_square_copy, king_square, 8);
+
+        // if we make an illegal move skip it
+        if (!make_move(move_list->moves[i], all_moves)) {
+            continue;
+        }
+
+        int score = -1 * nega_max(depth - 1, -beta, -alpha, -turn_multiplier);
+        
+        if (score > max) {
+            max = score;
+            if (depth == DEPTH) {
+                cout << "Next move: ";
+                print_move(move_list->moves[i]);
+                cout << "Score: " << score << endl;
+                NEXT_MOVE = move_list->moves[i];
+            }
+        }
+
+        // alpha beta pruning
+        if (max > alpha) {
+            alpha = max;
+        }
+
+        // restore board position
+        memcpy(board, board_copy, 512);
+        side = side_copy, enpassant = enpassant_copy, castle = castle_copy;
+        memcpy(king_square, king_square_copy, 8);
+    
+        if (alpha >= beta) {
+            return alpha;
+        }
+    }
+    return max;
+}
 
 // main driver
 int main() {
@@ -482,7 +567,8 @@ int main() {
     parse_fen(fen);
     print_board();
 
-    perft_test(4);
+    cout << "\n" << nega_max(DEPTH, -CHECKMATE, CHECKMATE, side == white ? 1 : -1) << endl;
+    //perft_test(4);
 
     return 0;
 }
