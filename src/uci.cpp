@@ -1,4 +1,5 @@
 #include "movegen.h"
+#include "search.h"
 #include "chess_utils.h"
 
 // parse user/GUI move string input (e.g. "e7e8q")
@@ -110,5 +111,22 @@ void parse_position(char *command) {
     }
 }
 
+// parse UCI go command
+void parse_go(char *command) {
+    // init depth
+    int depth = -1;
+    // init character pointer to current depth arg
+    char *current_depth = NULL;
+    // handle fixed depth search
+    if (current_depth = strstr(command, "depth")) {
+        depth = atoi(current_depth + 6);
+    } else {
+        // different time controls
+        depth = 6;
+    }
+
+    // search position
+    nega_max(depth, -CHECKMATE, CHECKMATE);
+}
 
 
