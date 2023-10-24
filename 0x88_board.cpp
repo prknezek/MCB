@@ -7,14 +7,7 @@
 #include <algorithm>
 
 #include "chess_utils.h"
-#include "movegen.h"
 #include "search.h"
-
-using std::vector;
-using std::pair;
-using std::numeric_limits;
-using std::sort;
-using std::make_pair;
 
 // FEN debug positions
 char start_position[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";

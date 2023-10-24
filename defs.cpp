@@ -1,5 +1,5 @@
 #include "defs.h"
-#include<limits>
+#include <limits>
 
 using std::numeric_limits;
 
@@ -82,6 +82,6 @@ int piece_value[14] = {0, 1, 3, 3, 5, 9, 0, 1, 3, 3, 5, 9, 0, 0};
 
 // move generation variables
 int CHECKMATE = numeric_limits<int>::max();
-int DEPTH = 7;
+int DEPTH = 3;
 int NEXT_MOVE = 0;
 int nodes = 0;
