@@ -58,14 +58,8 @@ int main() {
     // cout << "Nodes: " << nodes << endl;
     // cout << "Time: " << get_time_ms() - start_time << "ms" << endl;
 
-    char position[] = "position fen r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
-    parse_position(position);
-    print_board();
-
-    DEPTH = 6;
-
-    char go[] = "go depth 6";
-    parse_go(go);
+    // connect to the GUI
+    uci_loop();
 
     return 0;
 }

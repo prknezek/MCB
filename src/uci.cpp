@@ -109,6 +109,8 @@ void parse_position(char *command) {
             ++current_char;
         }
     }
+    // print board
+    print_board();
 }
 
 // parse UCI go command
@@ -120,13 +122,79 @@ void parse_go(char *command) {
     // handle fixed depth search
     if (current_depth = strstr(command, "depth")) {
         depth = atoi(current_depth + 6);
+        DEPTH = depth;
     } else {
         // different time controls
         depth = 6;
+        DEPTH = 6;
     }
 
     // search position
     nega_max(depth, -CHECKMATE, CHECKMATE);
 }
 
+void uci_loop() {
+    // reset STDIN and STDOUT buffers
+    setbuf(stdin, NULL);
+    setbuf(stdout, NULL);
+    // define user / GUI input buffer
+    char input[2000];
+    // print engine info
+    cout << "id name MCB\n";
+    cout << "id author prknezek\n";
+    cout << "uciok\n";
 
+    // main loop
+    while (1) {
+        // reset user / GUI input
+        memset(input, 0, sizeof(input));
+        // make sure output reaches the GUI
+        fflush(stdout);
+
+        // get user / GUI input
+        if (!fgets(input, 2000, stdin)) {
+            // continue the loop
+            continue;
+        }
+
+        // make sure input is available
+        else if (input[0] == '\n') {
+            // continue the loop
+            continue;
+        }
+
+        // parse UCI "isready" command
+        else if (strncmp(input, "isready", 7) == 0) {
+            cout << "readyok\n";
+            continue;
+        }
+
+        // parse UCI "position" command
+        else if (strncmp(input, "position", 8) == 0) {
+            parse_position(input);
+        }
+
+        // parse UCI "ucinewgame" command
+        else if (strncmp(input, "ucinewgame", 10) == 0) {
+            char position[] = "position startpos";
+            parse_position(position);
+        }
+
+        // parse UCI "go" command
+        else if (strncmp(input, "go", 2) == 0) {
+            parse_go(input);
+        }
+
+        // parse UCI "quit" command
+        else if (strncmp(input, "quit", 4) == 0) {
+            break;
+        }
+
+        // parse UCI "uci" command
+        else if (strncmp(input, "uci", 3) == 0) {
+            cout << "id name MCB\n";
+            cout << "id author prknezek\n";
+            cout << "uciok\n";
+        }
+    }
+}
