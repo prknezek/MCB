@@ -11,10 +11,6 @@
 #include "uci.h"
 #include "movegen.h"
 
-// FEN debug positions
-char start_position[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-char tricky_position[] = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
-
 void initialize_char_pieces() {
     for (int i = 0; i < 128; ++i) {
         char_pieces[i] = e;
@@ -62,19 +58,8 @@ int main() {
     // cout << "Nodes: " << nodes << endl;
     // cout << "Time: " << get_time_ms() - start_time << "ms" << endl;
 
-    char move_string[] = "b7b8b";
-
-    parse_fen(tricky_position);
-    print_board();
-
-    int move = parse_move(move_string);
-
-    if (move) {
-        make_move(move, all_moves);
-    } else {
-        cout << "\nIllegal move" << endl;
-    }
-
+    char position[] = "position startpos moves e2e4 e7e5";
+    parse_position(position);
     print_board();
 
     return 0;

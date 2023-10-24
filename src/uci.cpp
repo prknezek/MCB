@@ -51,3 +51,64 @@ int parse_move(char *move_string) {
     // return illegal move
     return 0;
 }
+
+// parse UCI position command
+void parse_position(char *command) {
+    // shift pointer to the right where next token begins
+    command += 9;
+    // init pointer to the current character in the command string
+    char *current_char = command;
+
+    // parse UCI "startpos" command
+    if (strncmp(command, "startpos", 8) == 0) {
+        // init chess board with start position
+        parse_fen(start_position);
+    }
+    // parse UCI "fen" command
+    else {
+        // make sure "fen" command is available within command string
+        current_char = strstr(command, "fen");
+
+        // if no "fen" command is in command string
+        if (current_char == NULL) {
+            // init chess board with start position
+            parse_fen(start_position);
+        } 
+        // found "fen" substring
+        else {
+            // shift pointer to the right where next token begins
+            current_char += 4;
+            // parse fen string
+            parse_fen(current_char);
+        }
+    }
+
+    // parse moves after position
+    current_char = strstr(command, "moves");
+    // moves available
+    if (current_char != NULL) {
+        // shift pointer to the right where next token begins
+        current_char += 6;
+
+        // loop over moves in command string
+        while (*current_char) {
+            // parse move string
+            int move = parse_move(current_char);
+            // break out of loop if illegal move
+            if (move == 0) {
+                break;
+            }
+            // make move
+            make_move(move, all_moves);
+            // move current character pointer to end of current move
+            while (*current_char && *current_char != ' ') {
+                ++current_char;
+            }
+            // go to next move
+            ++current_char;
+        }
+    }
+}
+
+
+

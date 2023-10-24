@@ -15,6 +15,10 @@ int board[128] = {
     R, N, B, Q, K, B, N, R,  o, o, o, o, o, o, o, o
 };
 
+// FEN debug positions
+char start_position[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+char tricky_position[] = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
+
 // enpassant square
 int enpassant = no_sq;
 

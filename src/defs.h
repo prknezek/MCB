@@ -21,6 +21,10 @@ enum pieces {e, P, N, B, R, Q, K, p, n, b, r, q, k, o};
 
 extern int board[128];
 
+
+extern char start_position[];
+extern char tricky_position[];
+
 // square encoding
 // no_sq is reserved for the enpassant square
 enum squares {
