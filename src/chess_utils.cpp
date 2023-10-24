@@ -390,3 +390,11 @@ int get_time_ms() {
     auto duration = current_time.time_since_epoch();
     return std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
 }
+
+string get_move_string(int move) {
+    char promoted_piece = (get_promoted_piece(move) ? promoted_pieces[get_promoted_piece(move)] : ' ');
+    if (promoted_piece == ' ') {
+        return square_to_coords[get_move_start(move)] + square_to_coords[get_move_target(move)] + "\n";
+    }
+    return square_to_coords[get_move_start(move)] + square_to_coords[get_move_target(move)] + promoted_piece + "\n";
+}

@@ -83,6 +83,7 @@ extern bool is_white_piece(int piece);
 extern bool is_black_piece(int piece);
 
 extern void add_move(moves *move_list, int move);
+extern string get_move_string(int move);
 
 extern int get_time_ms();
 

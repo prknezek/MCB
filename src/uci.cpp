@@ -131,6 +131,7 @@ void parse_go(char *command) {
 
     // search position
     nega_max(depth, -CHECKMATE, CHECKMATE);
+    cout << "bestmove " << get_move_string(NEXT_MOVE) << "\n";
 }
 
 void uci_loop() {

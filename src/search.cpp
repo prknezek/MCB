@@ -102,9 +102,6 @@ int nega_max(int depth, int alpha, int beta) {
         if (score > max) {
             max = score;
             if (depth == DEPTH) {
-                cout << "\nNext move: ";
-                print_move(move_list->moves[i]);
-                cout << "Score: " << score << endl;
                 NEXT_MOVE = move_list->moves[i];
             }
         }
