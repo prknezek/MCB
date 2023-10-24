@@ -115,11 +115,6 @@ void order_moves(moves *move_list) {
     }
 }
 
-int CHECKMATE = numeric_limits<int>::max();
-int DEPTH = 7;
-int NEXT_MOVE = 0;
-int nodes = 0;
-
 // nega max function
 int nega_max(int depth, int alpha, int beta) {
     // base case we evaluate final board position

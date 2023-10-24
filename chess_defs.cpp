@@ -1,4 +1,7 @@
 #include "defs.h"
+#include<limits>
+
+using std::numeric_limits;
 
 // board encoding
 int board[128] = {
@@ -76,3 +79,9 @@ int king_offsets[8] = {16, -16, 1, -1, 15, 17, -15, -17};
 
 // gives piece vals    e, P, N, B, R, Q, K, p, n, b, r, q, k, o
 int piece_value[14] = {0, 1, 3, 3, 5, 9, 0, 1, 3, 3, 5, 9, 0, 0};
+
+// move generation variables
+int CHECKMATE = numeric_limits<int>::max();
+int DEPTH = 7;
+int NEXT_MOVE = 0;
+int nodes = 0;
