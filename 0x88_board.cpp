@@ -8,6 +8,8 @@
 
 #include "chess_utils.h"
 #include "search.h"
+#include "uci.h"
+#include "movegen.h"
 
 // FEN debug positions
 char start_position[] = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -50,15 +52,30 @@ int main() {
     initialize_promoted_pieces();
 
     // parse fen string
-    char fen[] = "8/p3N2k/1p6/1P3Np1/P1B1P1Pn/8/5K2/3r3q b - - 3 48";
-    parse_fen(tricky_position);
-    print_board();
+    // char fen[] = "8/p3N2k/1p6/1P3Np1/P1B1P1Pn/8/5K2/3r3q b - - 3 48";
+    // parse_fen(tricky_position);
+    // print_board();
     
     // get best next move
-    int start_time = get_time_ms();
-    nega_max(DEPTH, -CHECKMATE, CHECKMATE);
-    cout << "Nodes: " << nodes << endl;
-    cout << "Time: " << get_time_ms() - start_time << "ms" << endl;
+    // int start_time = get_time_ms();
+    // nega_max(DEPTH, -CHECKMATE, CHECKMATE);
+    // cout << "Nodes: " << nodes << endl;
+    // cout << "Time: " << get_time_ms() - start_time << "ms" << endl;
+
+    char move_string[] = "b7b8b";
+
+    parse_fen(tricky_position);
+    print_board();
+
+    int move = parse_move(move_string);
+
+    if (move) {
+        make_move(move, all_moves);
+    } else {
+        cout << "\nIllegal move" << endl;
+    }
+
+    print_board();
 
     return 0;
 }
