@@ -354,7 +354,7 @@ int make_move(int move, int capture_flag) {
         side ^= 1;
 
         // take move back if king is in check
-        if (is_square_attacked(king_square[side ^ 1], side)) {
+        if (in_check(side)) {
             // restore board position
             memcpy(board, board_copy, 512);
             side = side_copy, enpassant = enpassant_copy, castle = castle_copy;
@@ -376,4 +376,5 @@ int make_move(int move, int capture_flag) {
             return 0;
         }
     }
+    return 0;
 }

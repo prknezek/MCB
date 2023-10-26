@@ -10,6 +10,7 @@
 #include "search.h"
 #include "uci.h"
 #include "movegen.h"
+#include "evaluate.h"
 
 void initialize_char_pieces() {
     for (int i = 0; i < 128; ++i) {
@@ -47,12 +48,12 @@ int main() {
     initialize_char_pieces();
     initialize_promoted_pieces();
 
-    // parse fen string
-    // char fen[] = "8/p3N2k/1p6/1P3Np1/P1B1P1Pn/8/5K2/3r3q b - - 3 48";
-    // parse_fen(tricky_position);
+    // // parse fen string
+    // char fen[] = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
+    // parse_fen(fen);
     // print_board();
     
-    // get best next move
+    // // get best next move
     // int start_time = get_time_ms();
     // nega_max(DEPTH, -CHECKMATE, CHECKMATE);
     // cout << "Nodes: " << nodes << endl;
