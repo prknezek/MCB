@@ -10,20 +10,20 @@ int pawn_mg[128] = {0,  0,  0,  0,  0,  0,  0,  0, o, o, o, o, o, o, o, o,
                    50, 50, 50, 50, 50, 50, 50, 50, o, o, o, o, o, o, o, o,
                    10, 10, 20, 30, 30, 20, 10, 10, o, o, o, o, o, o, o, o,
                     5,  5, 10, 25, 25, 10,  5,  5, o, o, o, o, o, o, o, o,
-                    0,  0,  0, 20, 20,  0,  0,  0, o, o, o, o, o, o, o, o,
+                    0,  0,  0, 30, 35,  0,  0,  0, o, o, o, o, o, o, o, o,
                     5, -5,-10,  0,  0,-10, -5,  5, o, o, o, o, o, o, o, o,
                     5, 10, 10,-20,-20, 10, 10,  5, o, o, o, o, o, o, o, o,
                     0,  0,  0,  0,  0,  0,  0,  0, o, o, o, o, o, o, o, o};
 
 // encourage knights to move towards center of the board
-int knight_mg[128] = {-50,-40,-30,-30,-30,-30,-40,-50, o, o, o, o, o, o, o, o,
+int knight_mg[128] = {-50,-30,-30,-30,-30,-30,-30,-50, o, o, o, o, o, o, o, o,
                       -40,-20,  0,  0,  0,  0,-20,-40, o, o, o, o, o, o, o, o,
                       -30,  0, 10, 15, 15, 10,  0,-30, o, o, o, o, o, o, o, o,
                       -30,  5, 15, 20, 20, 15,  5,-30, o, o, o, o, o, o, o, o,
                       -30,  0, 15, 20, 20, 15,  0,-30, o, o, o, o, o, o, o, o,
                       -30,  5, 10, 15, 15, 10,  5,-30, o, o, o, o, o, o, o, o,
                       -40,-20,  0,  5,  5,  0,-20,-40, o, o, o, o, o, o, o, o,
-                      -50,-40,-30,-30,-30,-30,-40,-50, o, o, o, o, o, o, o, o,};
+                      -50,-30,-30,-30,-30,-30,-30,-50, o, o, o, o, o, o, o, o,};
 
 // bishops are encouraged to avoid corners and borders
 // bishops are also encouraged to control diagonals
@@ -83,7 +83,7 @@ int evaluate() {
                     score += piece_value[piece] + tables[piece-1][square];
                 } else {
                     // subtract piece value from score
-                    score -= piece_value[piece] - tables[piece-7][FLIP(square)];
+                    score += -piece_value[piece] - tables[piece-7][FLIP(square)];
                 }
             }
         }

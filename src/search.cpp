@@ -21,9 +21,6 @@ void order_moves(moves *move_list) {
         int move_score = 0;
         int move_piece = board[get_move_start(move)];
         int capture_piece = board[get_move_target(move)];
-        
-        // prioritze checks
-
 
         // prioritize capturing opponent's most valuable piece with out least valuable piece
         if (capture_piece != e) {
