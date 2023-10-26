@@ -1,7 +1,8 @@
 #include "chess_utils.h"
 #include "evaluate.h"
 
-// score the board based on material
+
+// score the board based on material and piece-square tables
 int evaluate() {
     int score = 0;
     // loop over all board squares

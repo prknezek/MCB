@@ -81,8 +81,8 @@ int bishop_offsets[4] = {15, 17, -15, -17};
 int rook_offsets[4] = {16, -16, 1, -1};
 int king_offsets[8] = {16, -16, 1, -1, 15, 17, -15, -17};
 
-// gives piece vals    e, P, N, B, R, Q, K, p, n, b, r, q, k, o
-int piece_value[14] = {0, 1, 3, 3, 5, 9, 0, 1, 3, 3, 5, 9, 0, 0};
+// gives piece vals    e,  P,   N,   B,   R,   Q,    K,    p,   n,   b,   r,   q,    k,   o
+int piece_value[14] = {0, 100, 320, 330, 500, 900, 20000, 100, 320, 330, 500, 900, 20000, 0};
 
 // move generation variables
 int CHECKMATE = numeric_limits<int>::max();
