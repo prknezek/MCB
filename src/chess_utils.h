@@ -67,6 +67,8 @@ extern int in_check(int side);
 extern void print_move_list(moves *move_list);
 extern void print_move(int move);
 extern void print_attacked_squares(int side);
+extern void print_piece_counts();
+extern void print_piece_squares();
 extern void print_board();
 
 extern void reset_board();
@@ -81,6 +83,11 @@ extern bool is_white_piece_square(int square);
 
 extern bool is_white_piece(int piece);
 extern bool is_black_piece(int piece);
+extern void add_piece_count(int piece);
+extern void remove_piece_count(int piece);
+extern void add_piece_square(int square);
+extern void update_piece_square(int old_square, int new_square);
+extern void fill_piece_squares();
 
 extern void add_move(moves *move_list, int move);
 extern string get_move_string(int move);

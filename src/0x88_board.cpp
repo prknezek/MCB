@@ -56,10 +56,10 @@ int main() {
     initialize_char_pieces();
     initialize_promoted_pieces();
 
-    // // parse fen string
-    // char fen[] = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
-    // parse_fen(fen);
-    // print_board();
+    // parse fen string
+    char fen[] = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
+    parse_fen(fen);
+    print_board();
     
     // // get best next move
     // int start_time = get_time_ms();
@@ -70,7 +70,9 @@ int main() {
     // connect to the GUI
     // uci_loop();
     //cout << test_square(b6) << endl;
-    randint();
+    // randint();
+    
+    print_piece_squares();
 
     return 0;
 }

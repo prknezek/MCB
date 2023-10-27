@@ -63,11 +63,18 @@ void order_moves(moves *move_list) {
     }
 }
 
+// quiescence search
+// int quiescence(int alpha, int beta) {
+
+// }
+
 // nega max function
 int nega_max(int depth, int alpha, int beta) {
     // base case we evaluate final board position
     if (depth == 0) {
         nodes++;
+        // run quiescence search to avoid horizon effect
+        // return quiescence(alpha, beta);
         return evaluate();
     }
 
@@ -96,13 +103,6 @@ int nega_max(int depth, int alpha, int beta) {
             continue;
         }
 
-        // check for checkmate or stalemate
-        if (legal_moves == 0) {
-            if (in_check(side ^ 1)) {
-                return -CHECKMATE;
-            }
-            return 0;
-        }
 
         nodes++;
         int score = -1 * nega_max(depth - 1, -beta, -alpha);
@@ -128,6 +128,14 @@ int nega_max(int depth, int alpha, int beta) {
     
         if (alpha >= beta) {
             return alpha;
+        }
+        
+        // check for checkmate or stalemate
+        if (legal_moves == 0) {
+            if (in_check(side ^ 1)) {
+                return -CHECKMATE;
+            }
+            return 0;
         }
     }
     return max;

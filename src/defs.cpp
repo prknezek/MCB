@@ -91,3 +91,10 @@ int CHECKMATE = numeric_limits<int>::max();
 int DEPTH = 6;
 int NEXT_MOVE = 0;
 int nodes = 0;
+
+// array to keep track of piece counts
+// access with piece_count[side][piece]
+int piece_count[2][6] = {};
+// array to keep track of the indices of all pieces
+// access squares with piece_idx[side][piece]
+int piece_squares[2][6][10] = {};

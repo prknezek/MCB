@@ -258,6 +258,8 @@ void reset_board() {
 
 // parse FEN
 void parse_fen(char *fen) {
+    // initialize piece_squares array with no_sq
+    fill_piece_squares();
     // reset board
     reset_board();
 
@@ -283,7 +285,10 @@ void parse_fen(char *fen) {
                     // increment FEN pointer to next char
                     *fen++;
 
-                    // cout << "square: " << square_to_coords[square] << " | current FEN char: " << *fen << endl;
+                    // update piece's piece_count array value
+                    add_piece_count(board[square]);
+                    // add square to piece_squares array
+                    add_piece_square(square);
                 }
                 // match empty squares
                 if (*fen >= '0' && *fen <= '9') {
@@ -392,10 +397,124 @@ int get_time_ms() {
     return std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
 }
 
+// get move string for UCI commands
 string get_move_string(int move) {
     char promoted_piece = (get_promoted_piece(move) ? promoted_pieces[get_promoted_piece(move)] : ' ');
     if (promoted_piece == ' ') {
         return square_to_coords[get_move_start(move)] + square_to_coords[get_move_target(move)] + "\n";
     }
     return square_to_coords[get_move_start(move)] + square_to_coords[get_move_target(move)] + promoted_piece + "\n";
+}
+
+// print out piece counts
+void print_piece_counts() {
+    for (int i = 0; i < 12; i++) {
+        if (i < 6) {
+            cout << ascii_pieces[i + 1] << ": " << piece_count[white][i] << endl;
+        } else {
+            cout << ascii_pieces[i + 1] << ": " << piece_count[black][i - 6] << endl;
+        }
+    }
+}
+
+// add piece to piece count
+void add_piece_count(int piece) {
+    if (is_white_piece(piece)) {
+        piece_count[white][piece - 1]++;
+    } else {
+        piece_count[black][piece - 7]++;
+    }
+}
+
+// remove piece from piece count
+void remove_piece_count(int piece) {
+    if (is_white_piece(piece)) {
+        piece_count[white][piece - 1]--;
+    } else {
+        piece_count[black][piece - 7]--;
+    }
+}
+
+// fill every index of piece_squares array with no_sq
+void fill_piece_squares() {
+    std::fill(&piece_squares[0][0][0], 
+              &piece_squares[0][0][0] + sizeof(piece_squares) / sizeof(piece_squares[0][0][0]),
+              no_sq);
+}
+
+// print piece squares
+void print_piece_squares() {
+    // iterate over piece_squares array
+    for (int i = 0; i < 12; i++) {
+        if (i < 6) {
+            cout << ascii_pieces[i + 1] << ": ";
+            // iterate over squares for each white piece
+            for (int j = 0; j < 10; ++j) {
+                if (piece_squares[white][i][j] != no_sq)
+                    cout << square_to_coords[piece_squares[white][i][j]] << " ";
+            }
+            cout << endl;
+        } else {
+            cout << ascii_pieces[i + 1] << ": ";
+            // iterate over squares for each black piece
+            for (int j = 0; j < 10; ++j) {
+                if (piece_squares[black][i - 6][j] != no_sq)
+                    cout << square_to_coords[piece_squares[black][i - 6][j]] << " ";
+            }
+            cout << endl;
+        }
+    }
+}
+
+// adds a piece's square to the piece_squares array
+// ONLY TO BE USED ON INITIALIZATION IN parse_fen FUNCTION
+void add_piece_square(int square) {
+    int piece = board[square];
+    if (is_white_piece(piece)) {
+        int *indices = piece_squares[white][piece - 1];
+        // find first spot that is no_sq in piece_squares
+        for (int i = 0; i < 10; ++i) {
+            if (indices[i] == no_sq) {
+                indices[i] = square;
+                break;
+            }
+        }
+    } else {
+        int *indices = piece_squares[black][piece - 7];
+        // find first spot that is no_sq in piece_squares
+        for (int i = 0; i < 10; ++i) {
+            if (indices[i] == no_sq) {
+                indices[i] = square;
+                break;
+            }
+        }
+    }
+}
+
+// update a piece's old square to a new square
+// EX: update_piece_square(e2, e4) updates the square of the piece on e2 to e4
+// DOES NOT MOVE THE PIECE ON THE BOARD
+// FUNCTION MUST BE CALLED BEFORE MOVING PIECE ON THE BOARD
+void update_piece_square(int old_square, int new_square) {
+    // get piece on old square
+    int piece = board[old_square];
+    if (is_white_piece(piece)) {
+        int *indices = piece_squares[white][piece - 1];
+        // find old square in indices and replace with new square
+        for (int i = 0; i < 10; ++i) {
+            if (indices[i] == old_square) {
+                indices[i] = new_square;
+                break;
+            }
+        }
+    } else {
+        int *indices = piece_squares[black][piece - 7];
+        // find old square in indices and replace with new square
+        for (int i = 0; i < 10; ++i) {
+            if (indices[i] == old_square) {
+                indices[i] = new_square;
+                break;
+            }
+        }
+    }
 }
