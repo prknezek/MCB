@@ -1,5 +1,5 @@
 // headers
-#include<stdio.h>
+#include <stdio.h>
 #include <iostream>
 #include <limits>
 #include <vector>
@@ -55,19 +55,20 @@ int main() {
     initialize_char_pieces();
     initialize_promoted_pieces();
 
-    // parse fen string
-    char fen[] = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
-    parse_fen(start_position);
-    print_board();
+    // // parse fen string
+    // char fen[] = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
+    // parse_fen(fen);
+    // print_board();
     
-    // get best next move
-    int start_time = get_time_ms();
-    nega_max(DEPTH, -CHECKMATE, CHECKMATE);
-    cout << "Nodes: " << nodes << endl;
-    cout << "Time: " << get_time_ms() - start_time << "ms" << endl;
+    // // get best next move
+    // int start_time = get_time_ms();
+    // nega_max(DEPTH, -CHECKMATE, CHECKMATE);
+    // cout << "Nodes: " << nodes << endl;
+    // cout << "Time: " << get_time_ms() - start_time << "ms" << endl;
 
     // connect to the GUI
-    // uci_loop();
+    uci_loop();
+    //cout << test_square(b6) << endl;
 
     return 0;
 }

@@ -24,17 +24,28 @@ void order_moves(moves *move_list) {
 
         // prioritize capturing opponent's most valuable piece with out least valuable piece
         if (capture_piece != e) {
-            move_score = 10 * piece_value[capture_piece] - piece_value[move_piece];
+            if (is_white_piece(capture_piece))
+                move_score = 10 * piece_value[0][capture_piece - 1] - piece_value[1][move_piece - 7];
+            else if (is_black_piece(capture_piece))
+                move_score = 10 * piece_value[1][capture_piece - 7] - piece_value[0][move_piece - 1];
         }
 
         // promoting a pawn is likely a good move
         if (get_promoted_piece(move) != e) {
-            move_score += piece_value[get_promoted_piece(move)];
+            if (is_white_piece(get_promoted_piece(move))) {
+                move_score += piece_value[0][get_promoted_piece(move) - 1];
+            } else {
+                move_score -= piece_value[1][get_promoted_piece(move) - 7];
+            }
         }
 
         // penalize moving pieces to a square that's attacked by an opponent pawn
         if (is_square_attacked_pawn(get_move_target(move), side ^ 1)) {
-            move_score -= piece_value[move_piece];
+            if (is_white_piece(move_piece)) {
+                move_score -= piece_value[0][move_piece - 1];
+            } else {
+                move_score -= piece_value[1][move_piece - 7];
+            }
         }
 
         // add the move and its score to the vector
@@ -99,8 +110,8 @@ int nega_max(int depth, int alpha, int beta) {
         if (score > max) {
             max = score;
             if (depth == DEPTH) {
-                print_move(move_list->moves[i]);
-                cout << "Score: " << score << endl;
+                // print_move(move_list->moves[i]);
+                // cout << "Score: " << score << endl;
                 NEXT_MOVE = move_list->moves[i];
             }
         }

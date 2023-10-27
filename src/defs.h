@@ -80,7 +80,7 @@ extern int bishop_offsets[4];
 extern int rook_offsets[4];
 extern int king_offsets[8];
 
-extern int piece_value[14];
+extern int piece_value[2][6];
 
 extern int CHECKMATE;
 extern int DEPTH;

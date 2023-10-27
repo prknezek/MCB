@@ -2,6 +2,6 @@
 #define EVALUATE_H
 
 int evaluate();
-int test(int square);
+int test_square(int square);
 
 #endif
