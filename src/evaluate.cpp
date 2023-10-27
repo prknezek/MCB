@@ -89,7 +89,8 @@ int evaluate() {
     return score * (side == white ? 1 : -1);
 }
 
-int test_square(int square) {
+// score a square of the board
+int square_score(int square) {
     if (on_board(square)) {
         int piece = board[square];
         if (piece != e) {
