@@ -11,6 +11,7 @@
 #include "uci.h"
 #include "movegen.h"
 #include "evaluate.h"
+#include "tt.h"
 
 void initialize_char_pieces() {
     for (int i = 0; i < 128; ++i) {
@@ -67,8 +68,9 @@ int main() {
     // cout << "Time: " << get_time_ms() - start_time << "ms" << endl;
 
     // connect to the GUI
-    uci_loop();
+    // uci_loop();
     //cout << test_square(b6) << endl;
+    randint();
 
     return 0;
 }
