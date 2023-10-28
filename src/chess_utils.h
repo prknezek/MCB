@@ -84,9 +84,9 @@ extern bool is_white_piece_square(int square);
 extern bool is_white_piece(int piece);
 extern bool is_black_piece(int piece);
 extern void add_piece_count(int piece);
-extern void remove_piece_count(int piece);
+extern void subtract_piece_count(int piece);
 extern void add_piece_square(int square);
-extern void update_piece_square(int old_square, int new_square);
+extern void update_piece_square(int piece, int old_square, int new_square);
 extern void fill_piece_squares();
 
 extern void add_move(moves *move_list, int move);

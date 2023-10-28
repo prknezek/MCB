@@ -97,4 +97,6 @@ int nodes = 0;
 int piece_count[2][6] = {};
 // array to keep track of the indices of all pieces
 // access squares with piece_idx[side][piece]
+// there can be up to 10 of each type of piece
+// (all 8 pawns promoted to knights or bishops + 2 bishops or knights remaining on the board)
 int piece_squares[2][6][10] = {};

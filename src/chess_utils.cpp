@@ -427,7 +427,7 @@ void add_piece_count(int piece) {
 }
 
 // remove piece from piece count
-void remove_piece_count(int piece) {
+void subtract_piece_count(int piece) {
     if (is_white_piece(piece)) {
         piece_count[white][piece - 1]--;
     } else {
@@ -467,7 +467,6 @@ void print_piece_squares() {
 }
 
 // adds a piece's square to the piece_squares array
-// ONLY TO BE USED ON INITIALIZATION IN parse_fen FUNCTION
 void add_piece_square(int square) {
     int piece = board[square];
     if (is_white_piece(piece)) {
@@ -494,10 +493,8 @@ void add_piece_square(int square) {
 // update a piece's old square to a new square
 // EX: update_piece_square(e2, e4) updates the square of the piece on e2 to e4
 // DOES NOT MOVE THE PIECE ON THE BOARD
-// FUNCTION MUST BE CALLED BEFORE MOVING PIECE ON THE BOARD
-void update_piece_square(int old_square, int new_square) {
+void update_piece_square(int piece, int old_square, int new_square) {
     // get piece on old square
-    int piece = board[old_square];
     if (is_white_piece(piece)) {
         int *indices = piece_squares[white][piece - 1];
         // find old square in indices and replace with new square
