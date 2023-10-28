@@ -81,11 +81,22 @@ int bishop_offsets[4] = {15, 17, -15, -17};
 int rook_offsets[4] = {16, -16, 1, -1};
 int king_offsets[8] = {16, -16, 1, -1, 15, 17, -15, -17};
 
-// gives piece vals    e,  P,   N,   B,   R,   Q,    K,    p,   n,   b,   r,   q,    k,   o
-int piece_value[14] = {0, 100, 320, 330, 500, 900, 20000, 100, 320, 330, 500, 900, 20000, 0};
+// piece values for white and black pieces based on Pesto evaluation
+//                        P    N    B    R    Q     K
+int piece_value[2][6] = { 82, 337, 365, 477, 1025, 12000, 
+                          94, 281, 297, 512,  936, 12000};
 
 // move generation variables
 int CHECKMATE = numeric_limits<int>::max();
 int DEPTH = 6;
 int NEXT_MOVE = 0;
 int nodes = 0;
+
+// array to keep track of piece counts
+// access with piece_count[side][piece]
+int piece_count[2][6] = {};
+// array to keep track of the indices of all pieces
+// access squares with piece_idx[side][piece]
+// there can be up to 10 of each type of piece
+// (all 8 pawns promoted to knights or bishops + 2 bishops or knights remaining on the board)
+int piece_squares[2][6][10] = {};

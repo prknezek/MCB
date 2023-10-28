@@ -80,11 +80,14 @@ extern int bishop_offsets[4];
 extern int rook_offsets[4];
 extern int king_offsets[8];
 
-extern int piece_value[14];
+extern int piece_value[2][6];
 
 extern int CHECKMATE;
 extern int DEPTH;
 extern int NEXT_MOVE;
 extern int nodes;
+
+extern int piece_count[2][6];
+extern int piece_squares[2][6][10];
 
 #endif
