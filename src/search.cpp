@@ -57,6 +57,8 @@ int nega_max(int depth, int alpha, int beta) {
     // base case we evaluate final board position
     if (depth == 0) {
         nodes++;
+        // at depth 0 evaluate all capturing moves until there aren't any
+        // this makes it so positions don't leave pieces hanging 
         return evaluate();
     }
 
