@@ -73,16 +73,17 @@ int quiescence(int alpha, int beta) {
         // node (move) fails high
         return beta;
     }
+
     // found a better move
-    if (eval > alpha) {
-        // PV node (move)
-        alpha = eval;
-    }
+    alpha = std::max(alpha, eval);
 
     moves move_list[1];
     // generate all possible moves at current board position
     generate_moves(move_list);
 
+    // order moves based on heuristics
+    order_moves(move_list);
+    
     // go through all possible moves
     for (int i = 0; i < move_list->count; i++) {
         // create board state copy variables
@@ -96,6 +97,7 @@ int quiescence(int alpha, int beta) {
 
         // if we make an illegal move skip it
         if (!make_move(move_list->moves[i], only_captures)) {
+            // go to next loop iteration
             continue;
         }
 
@@ -111,11 +113,7 @@ int quiescence(int alpha, int beta) {
             // node (move) fails high
             return beta;
         }
-        // found a better move
-        if (score > alpha) {
-            // PV node (move)
-            alpha = score;
-        }
+        alpha = std::max(alpha, score);
     }
     // node (move) fails low
     return alpha;
@@ -126,7 +124,7 @@ int nega_max(int depth, int alpha, int beta) {
     // base case we evaluate final board position
     if (depth == 0) {
         nodes++;
-        // run quiescence search to avoid horizon effect
+        // run quiescence search to avoid horizon effect (capture of piece on next move)
         return quiescence(alpha, beta);
     }
 
@@ -178,7 +176,6 @@ int nega_max(int depth, int alpha, int beta) {
         if (score > alpha) {
             // PV node (move)
             alpha = score;
-
             // if root move
             if (depth == DEPTH) {
                 // associate best move with best score

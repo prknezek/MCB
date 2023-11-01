@@ -657,11 +657,11 @@ int make_move(int move, int capture_flag) {
         return 1;
     } else {
         // capture move
-
+        
         // if move is a capture
         if (get_move_capture(move)) {
             // make capture move
-            make_move(move, all_moves);
+            return make_move(move, all_moves);
         } else {
             // move is not a capture
             return 0;

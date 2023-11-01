@@ -64,7 +64,7 @@ int main() {
     cout << "Time: " << get_time_ms() - start_time << "ms" << endl;
     print_move(NEXT_MOVE);
 
-    cout << evaluate() << endl;
+    cout << '\n' << evaluate() << endl;
     make_move(encode_move(d5, f6, 0, 0, 0, 0, 0), all_moves);
     cout << evaluate() << endl;
 
