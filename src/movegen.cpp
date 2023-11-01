@@ -2,7 +2,7 @@
 #include "movegen.h"
 
 // move generator
-void old_generate_moves(moves *move_list) {
+void generate_moves(moves *move_list) {
     // reset move count
     move_list->count = 0;
     // loop over all board squares
@@ -267,7 +267,7 @@ void old_generate_moves(moves *move_list) {
     }
 }
 
-void generate_moves(moves *move_list) {
+void new_generate_moves(moves *move_list) {
     // reset move count
     move_list->count = 0;
 
