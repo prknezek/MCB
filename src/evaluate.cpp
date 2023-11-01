@@ -165,8 +165,6 @@ int evaluate() {
     } else {
         game_phase = EG;
     }
-    cout << "Game phase score: " << game_phase_score << endl;
-    cout << "Game phase: " << (game_phase == MG ? "MG" : "EG") << endl;
 
     return score * (side == white ? 1 : -1);
 }

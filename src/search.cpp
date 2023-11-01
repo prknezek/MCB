@@ -130,7 +130,12 @@ int nega_max(int depth, int alpha, int beta) {
         return quiescence(alpha, beta);
     }
 
-    int max = -CHECKMATE;
+    // best move so far
+    int best_sofar;
+
+    // old alpha value
+    int old_alpha = alpha;
+
     moves move_list[1];
     // generate all possible moves at current board position
     generate_moves(move_list);
@@ -157,20 +162,30 @@ int nega_max(int depth, int alpha, int beta) {
 
         nodes++;
         int score = -nega_max(depth - 1, -beta, -alpha);
-        
-        // get best move at root node
-        if (score > max) {
-            max = score;
-            if (depth == DEPTH) {
-                NEXT_MOVE = move_list->moves[i];
-            }
-        }
 
         // restore board position
         memcpy(board, board_copy, 512);
         side = side_copy, enpassant = enpassant_copy, castle = castle_copy;
         memcpy(king_square, king_square_copy, 8);
     
+        // fail-hard beta cutoff
+        if (score >= beta) {
+            // node (move) fails high
+            return beta;
+        }
+
+        // found a better move
+        if (score > alpha) {
+            // PV node (move)
+            alpha = score;
+
+            // if root move
+            if (depth == DEPTH) {
+                // associate best move with best score
+                best_sofar = move_list->moves[i];
+            }
+        }
+
         // check for checkmate or stalemate
         if (legal_moves == 0) {
             if (in_check(side ^ 1)) {
@@ -178,15 +193,13 @@ int nega_max(int depth, int alpha, int beta) {
             }
             return 0;
         }
-
-        // alpha beta pruning
-        if (max > alpha) {
-            alpha = max;
-        }
-
-        if (alpha >= beta) {
-            return alpha;
-        }
     }
-    return max;
+    
+    if (old_alpha != alpha) {
+        // init best move
+        NEXT_MOVE = best_sofar;
+    }
+
+    // node (move) fails low
+    return alpha;
 }
