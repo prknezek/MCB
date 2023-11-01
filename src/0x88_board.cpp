@@ -44,13 +44,6 @@ void initialize_promoted_pieces() {
     promoted_pieces[n] = 'n';
 }
 
-int find(string arr[], int len, string seek) {
-    for (int i = 0; i < len; ++i) {
-        if (arr[i] == seek) return i;
-    }
-    return -1;
-}
-
 // main driver
 int main() {
     // initialize conversion arrays
