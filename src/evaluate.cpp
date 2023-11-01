@@ -4,6 +4,8 @@
 // get the opposite square so we can use one table for white and black
 #define FLIP(sq) (119 - (sq))
 
+enum game_phase {MG, EG};
+
 const int piece_square_score[2][6][128] = {
     // MG values
     // pawn
@@ -128,8 +130,15 @@ const int piece_square_score[2][6][128] = {
     -53, -34, -21, -11, -28, -14, -24, -43,  o, o, o, o, o, o, o, o
 };
 
+// gamephase increment array
+int game_phase_inc[12] = {0, 1, 1, 2, 4, 0, 0, 1, 1, 2, 4, 0};
+int game_phase_score = 0;
+// game_phase is either middle game or end game
+int game_phase = MG;
+
 // score the board based on material and piece-square tables
 int evaluate() {
+    game_phase_score = 0;
     int score = 0;
     // loop over all board squares
     for (int square = 0; square < 128; ++square) {
@@ -138,16 +147,27 @@ int evaluate() {
             // if square is not empty
             int piece = board[square];
             if (piece != e) {
+                // increment game phase based on piece value remaining
+                game_phase_score += game_phase_inc[piece - 1];
                 if (is_white_piece(piece)) {
                     // add piece value to score
-                    score += piece_value[0][piece-1] + tables[piece-1][square];
+                    score += piece_value[0][piece-1] + piece_square_score[game_phase][piece-1][square];
                 } else {
                     // subtract piece value from score
-                    score += -piece_value[1][piece-7] - tables[piece-7][FLIP(square)];
+                    score += -piece_value[1][piece-7] - piece_square_score[game_phase][piece-7][FLIP(square)];
                 }
             }
         }
     }
+    // tapered evaluation to determine whether we're in endgame or middlegame
+    if (game_phase_score > 10) {
+        game_phase = MG;
+    } else {
+        game_phase = EG;
+    }
+    cout << "Game phase score: " << game_phase_score << endl;
+    cout << "Game phase: " << (game_phase == MG ? "MG" : "EG") << endl;
+
     return score * (side == white ? 1 : -1);
 }
 
@@ -158,10 +178,10 @@ int square_score(int square) {
         if (piece != e) {
             if (is_white_piece(piece)) {
                 // add piece value to score
-                return piece_value[0][piece - 1] + tables[piece-1][FLIP(square)];
+                return piece_value[0][piece-1] + piece_square_score[game_phase][piece-1][square];
             } else {
                 // subtract piece value from score
-                return -piece_value[1][piece - 7] - tables[piece-7][square];
+                return -piece_value[1][piece-7] - piece_square_score[game_phase][piece-7][FLIP(square)];
             } 
         }
     }

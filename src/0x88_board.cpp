@@ -51,8 +51,8 @@ int main() {
     initialize_promoted_pieces();
 
     // parse fen string
-    char fen[] = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - ";
-    parse_fen(tricky_position);
+    char fen[] = "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1";
+    parse_fen(fen);
     print_board();
     
     // // get best next move
@@ -65,12 +65,7 @@ int main() {
     // uci_loop();
     //cout << test_square(b6) << endl;
     // randint();
-
-    perft_test(2);
-    // print_piece_squares();
-    // make_move(encode_move(e2, a6, 0, 1, 0, 0, 0), all_moves);
-    // print_board();
-    // print_piece_squares();
+    cout << evaluate() << endl;
 
     return 0;
 }
