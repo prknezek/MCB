@@ -89,5 +89,8 @@ extern int nodes;
 
 extern int piece_count[2][6];
 extern int piece_squares[2][6][10];
+extern int GAMEPHASEMINEG;
+extern int GAMEPHASEMAXMG;
+extern int GAMEPHASERANGE;
 
 #endif

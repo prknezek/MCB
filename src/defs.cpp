@@ -100,3 +100,8 @@ int piece_count[2][6] = {};
 // there can be up to 10 of each type of piece
 // (all 8 pawns promoted to knights or bishops + 2 bishops or knights remaining on the board)
 int piece_squares[2][6][10] = {};
+
+// game phase variables
+int GAMEPHASEMINEG = 518;
+int GAMEPHASEMAXMG = 6192;
+int GAMEPHASERANGE = GAMEPHASEMAXMG - GAMEPHASEMINEG;
