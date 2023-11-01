@@ -51,9 +51,9 @@ int main() {
     initialize_promoted_pieces();
 
     // parse fen string
-    char fen[] = "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1";
-    parse_fen(fen);
-    print_board();
+    //char fen[] = "r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1";
+    //parse_fen(fen);
+    // print_board();
     
     // // get best next move
     // int start_time = get_time_ms();
@@ -62,10 +62,10 @@ int main() {
     // cout << "Time: " << get_time_ms() - start_time << "ms" << endl;
 
     // connect to the GUI
-    // uci_loop();
+    uci_loop();
     //cout << test_square(b6) << endl;
     // randint();
-    cout << evaluate() << endl;
+    // cout << evaluate() << endl;
 
     return 0;
 }

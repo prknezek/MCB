@@ -64,9 +64,62 @@ void order_moves(moves *move_list) {
 }
 
 // quiescence search
-// int quiescence(int alpha, int beta) {
+int quiescence(int alpha, int beta) {
+    // base case we evaluate final board position
+    int eval = evaluate();
 
-// }
+    // fail-hard beta cutoff
+    if (eval >= beta) {
+        // node (move) fails high
+        return beta;
+    }
+    // found a better move
+    if (eval > alpha) {
+        // PV node (move)
+        alpha = eval;
+    }
+
+    moves move_list[1];
+    // generate all possible moves at current board position
+    generate_moves(move_list);
+
+    // go through all possible moves
+    for (int i = 0; i < move_list->count; i++) {
+        // create board state copy variables
+        int board_copy[128], king_square_copy[2];
+        int side_copy, enpassant_copy, castle_copy;
+
+        // copy board state
+        memcpy(board_copy, board, 512);
+        side_copy = side, enpassant_copy = enpassant, castle_copy = castle;
+        memcpy(king_square_copy, king_square, 8);
+
+        // if we make an illegal move skip it
+        if (!make_move(move_list->moves[i], only_captures)) {
+            continue;
+        }
+
+        int score = -quiescence(-beta, -alpha);
+        
+        // restore board position
+        memcpy(board, board_copy, 512);
+        side = side_copy, enpassant = enpassant_copy, castle = castle_copy;
+        memcpy(king_square, king_square_copy, 8);
+    
+        // fail-hard beta cutoff
+        if (score >= beta) {
+            // node (move) fails high
+            return beta;
+        }
+        // found a better move
+        if (score > alpha) {
+            // PV node (move)
+            alpha = score;
+        }
+    }
+    // node (move) fails low
+    return alpha;
+}
 
 // nega max function
 int nega_max(int depth, int alpha, int beta) {
@@ -74,8 +127,7 @@ int nega_max(int depth, int alpha, int beta) {
     if (depth == 0) {
         nodes++;
         // run quiescence search to avoid horizon effect
-        // return quiescence(alpha, beta);
-        return evaluate();
+        return quiescence(alpha, beta);
     }
 
     int max = -CHECKMATE;
@@ -103,22 +155,15 @@ int nega_max(int depth, int alpha, int beta) {
             continue;
         }
 
-
         nodes++;
-        int score = -1 * nega_max(depth - 1, -beta, -alpha);
+        int score = -nega_max(depth - 1, -beta, -alpha);
         
+        // get best move at root node
         if (score > max) {
             max = score;
             if (depth == DEPTH) {
-                // print_move(move_list->moves[i]);
-                // cout << "Score: " << score << endl;
                 NEXT_MOVE = move_list->moves[i];
             }
-        }
-
-        // alpha beta pruning
-        if (max > alpha) {
-            alpha = max;
         }
 
         // restore board position
@@ -126,16 +171,21 @@ int nega_max(int depth, int alpha, int beta) {
         side = side_copy, enpassant = enpassant_copy, castle = castle_copy;
         memcpy(king_square, king_square_copy, 8);
     
-        if (alpha >= beta) {
-            return alpha;
-        }
-        
         // check for checkmate or stalemate
         if (legal_moves == 0) {
             if (in_check(side ^ 1)) {
                 return -CHECKMATE;
             }
             return 0;
+        }
+
+        // alpha beta pruning
+        if (max > alpha) {
+            alpha = max;
+        }
+
+        if (alpha >= beta) {
+            return alpha;
         }
     }
     return max;
