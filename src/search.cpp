@@ -25,11 +25,30 @@ int history_moves[12][64];
 int pv_length[max_ply];
 // PV table [ply][ply]
 int pv_table[max_ply][max_ply];
+// follow PV & score PV move
+int follow_pv, score_pv;
+
+// enable PV move scoring
+void enable_pv_scoring(moves *move_list) {
+    // disable following PV line
+    follow_pv = 0;
+    
+    for (int i = 0; i < move_list->count; ++i) {
+        // make sure we hit PV move
+        if (pv_table[0][ply] == move_list->moves[i]) {
+            // enable move scoring
+            score_pv = 1;
+            // enable following PV line
+            follow_pv = 1;
+        }
+    }
+}
 
 // order moves for a more efficient negamax function 
 void order_moves(moves *move_list) {
     // create a vector of pairs to store the move and its score
     vector<pair<int, int>> move_scores;
+
 
     for (int i = 0; i < move_list->count; ++i) {
         int move = move_list->moves[i];
@@ -38,34 +57,41 @@ void order_moves(moves *move_list) {
         int move_piece = board[get_move_start(move)];
         int capture_piece = board[get_move_target(move)];
 
-        // MVV-LVA heuristic
-        // prioritize capturing opponent's most valuable piece with out least valuable piece
-        if (capture_piece != e) {
+        // if PV move scoring is allowed
+        if (score_pv) {
+            // make sure we are dealing with PV move
+            if (pv_table[0][ply] == move) {
+                // disable PV move scoring
+                score_pv = 0;
+
+                cout << "current PV move: " << get_move_string(move);
+                cout << "  ply: " << ply << endl; 
+
+                // score PV move
+                move_score += 20000;
+            }
+        } 
+        // capturing moves
+        else if (capture_piece != e) {
+            // MVV-LVA heuristic
+            // prioritize capturing opponent's most valuable piece with out least valuable piece
             if (is_white_piece(capture_piece))
                 move_score = 10 * piece_value[0][capture_piece - 1] - piece_value[1][move_piece - 7] + 10000;
             else if (is_black_piece(capture_piece))
                 move_score = 10 * piece_value[1][capture_piece - 7] - piece_value[0][move_piece - 1] + 10000;
-        }
-
-        // promoting a pawn is likely a good move
-        if (get_promoted_piece(move) != e) {
-            if (is_white_piece(get_promoted_piece(move)))
-                move_score += piece_value[0][get_promoted_piece(move) - 1];
-            else
-                move_score -= piece_value[1][get_promoted_piece(move) - 7];
-        }
-
-        // penalize moving pieces to a square that's attacked by an opponent pawn
-        if (is_square_attacked_pawn(get_move_target(move), side ^ 1)) {
-            if (is_white_piece(move_piece)) {
-                move_score -= piece_value[0][move_piece - 1];
-            } else {
-                move_score -= piece_value[1][move_piece - 7];
+        
+            // penalize moving pieces to a square that's attacked by an opponent pawn
+            if (is_square_attacked_pawn(get_move_target(move), side ^ 1)) {
+                if (is_white_piece(move_piece)) {
+                    move_score -= piece_value[0][move_piece - 1];
+                } else {
+                    move_score -= piece_value[1][move_piece - 7];
+                }
             }
-        }
-
-        // killer heuristic and history heuristic
-        if (capture_piece == e) {
+        } 
+        // quiet moves
+        else if (capture_piece == e) {
+            // killer heuristic and history heuristic
             // score 1st killer move
             if (killer_moves[0][ply] == move) {
                 move_score += 9000;
@@ -78,6 +104,13 @@ void order_moves(moves *move_list) {
             else {
                 move_score += history_moves[move_piece - 1][get_move_target(move)];
             }
+        } 
+        // promoting a pawn is likely a good move
+        else if (get_promoted_piece(move) != e) {
+            if (is_white_piece(get_promoted_piece(move)))
+                move_score += piece_value[0][get_promoted_piece(move) - 1];
+            else
+                move_score -= piece_value[1][get_promoted_piece(move) - 7];
         }
 
         // add the move and its score to the vector
@@ -180,6 +213,12 @@ int nega_max(int depth, int alpha, int beta) {
     // generate all possible moves at current board position
     generate_moves(move_list);
 
+    // if we are following the PV line
+    if (follow_pv) {
+        // enable PV move scoring
+        enable_pv_scoring(move_list);
+    }
+
     // order moves based on heuristics
     order_moves(move_list);
     // go through all possible moves
@@ -268,6 +307,8 @@ int nega_max(int depth, int alpha, int beta) {
 void search(int depth) {
     // reset nodes counter
     nodes = 0;
+    follow_pv = 0;
+    score_pv = 0;
 
     // clear helper data structures for search
     memset(killer_moves, 0, sizeof(killer_moves));
@@ -295,14 +336,10 @@ void search(int depth) {
     }
     cout << endl;
 
-
-
-
-
-
-
     // reset nodes counter
     nodes = 0;
+    follow_pv = 0;
+    score_pv = 0;
 
     // clear helper data structures for search
     memset(killer_moves, 0, sizeof(killer_moves));
@@ -312,6 +349,10 @@ void search(int depth) {
 
     // iterative deepening
     for (int current_depth = 1; current_depth <= depth; ++current_depth) {
+        nodes = 0;
+        // enable follow PV flag
+        follow_pv = 1;
+        
         score = nega_max(current_depth, -CHECKMATE, CHECKMATE);
 
         cout << "\nDepth: " << current_depth << "   ";
