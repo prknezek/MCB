@@ -195,7 +195,7 @@ int quiescence(int alpha, int beta) {
 // nega max function
 int nega_max(int depth, int alpha, int beta) {
     // init found PV move flag
-    int found_pv_move = 0;
+    int found_pv_node = 0;
 
     // init PV length
     pv_length[ply] = ply;
@@ -253,11 +253,11 @@ int nega_max(int depth, int alpha, int beta) {
         nodes++;
 
         // implementing Principle Variation Search (PVS)
-        if (found_pv_move) {
+        if (found_pv_node) {
             score = -nega_max(depth - 1, -alpha - 1, -alpha);
-            // if score is within the window
+            // check for failure
             if (score > alpha && score < beta) {
-                // re-search with a full window
+                // re-search the move that has failed with a full window
                 score = -nega_max(depth - 1, -beta, -alpha);
             }
         } else {
@@ -297,7 +297,7 @@ int nega_max(int depth, int alpha, int beta) {
             // PV node (move)
             alpha = score;
             // found PV move
-            found_pv_move = 1;
+            found_pv_node = 1;
 
             // write PV move to PV table
             pv_table[ply][ply] = move_list->moves[i];
@@ -324,38 +324,9 @@ int nega_max(int depth, int alpha, int beta) {
 
 // search position for the best move
 void search(int depth) {
-    // reset nodes counter
-    nodes = 0;
-    follow_pv = 0;
-    score_pv = 0;
-
-    // clear helper data structures for search
-    memset(killer_moves, 0, sizeof(killer_moves));
-    memset(history_moves, 0, sizeof(history_moves));
-    memset(pv_table, 0, sizeof(pv_table));
-    memset(pv_length, 0, sizeof(pv_length));
-
-    int START_TIME = get_time_ms();
-
-    int score = nega_max(depth, -CHECKMATE, CHECKMATE);
-
-    cout << "\nDepth: " << depth << endl;
-    cout << "Score: " << score << endl;
-    cout << "Nodes: " << nodes << endl;
-    cout << "Time: " << get_time_ms() - START_TIME << "ms" << endl;
-
-    NEXT_MOVE = pv_table[0][0];
-    cout << "Best Move: " << get_move_string(NEXT_MOVE) << endl;
-
-    cout << "PV Line: ";
-    for (int i = 0; i < pv_length[0]; ++i) {
-        int move = pv_table[0][i];
-        cout << square_to_coords[get_move_start(move)] << square_to_coords[get_move_target(move)] << promoted_pieces[get_promoted_piece(move)];
-        cout << " ";
-    }
-    cout << endl;
-
-    // reset nodes counter
+    // init score variable
+    int score = 0;
+    // reset nodes and flags
     nodes = 0;
     follow_pv = 0;
     score_pv = 0;
@@ -368,7 +339,6 @@ void search(int depth) {
 
     // iterative deepening
     for (int current_depth = 1; current_depth <= depth; ++current_depth) {
-        nodes = 0;
         // enable follow PV flag
         follow_pv = 1;
         

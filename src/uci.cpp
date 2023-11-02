@@ -128,7 +128,7 @@ void parse_go(char *command) {
     }
 
     // search position
-    nega_max(depth, -CHECKMATE, CHECKMATE);
+    search(depth);
     cout << "bestmove " << get_move_string(NEXT_MOVE) << "\n";
 }
 
