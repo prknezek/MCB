@@ -1,6 +1,7 @@
 #include "chess_utils.h"
 
-#include<chrono>
+#include <chrono>
+#include <string.h>
 
 // returns if the given square is attacked by a user-defined side
 int is_square_attacked(int square, int side) {

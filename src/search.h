@@ -12,6 +12,9 @@ extern int pv_table[64][64];
 extern int full_depth_moves;
 extern int LMR_limit;
 
+void copy_board_state();
+void restore_board_state();
+
 void order_moves(moves *move_list);
 int nega_max(int depth, int alpha, int beta);
 void search(int depth);

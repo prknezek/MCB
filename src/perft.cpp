@@ -18,14 +18,8 @@ int perft_driver(int depth = 1) {
 
     // go through all valid moves
     for (int i = 0; i < move_list->count; ++i) {
-        // create board state copy variables
-        int board_copy[128], king_square_copy[2];
-        int side_copy, enpassant_copy, castle_copy;
-
         // copy board state
-        memcpy(board_copy, board, 512);
-        side_copy = side, enpassant_copy = enpassant, castle_copy = castle;
-        memcpy(king_square_copy, king_square, 8);
+        copy_board();
 
         // if we make an illegal move skip it
         if(!make_move(move_list->moves[i], all_moves)) {
@@ -35,9 +29,7 @@ int perft_driver(int depth = 1) {
         nodes += perft_driver(depth - 1);
 
         // restore board position
-        memcpy(board, board_copy, 512);
-        side = side_copy, enpassant = enpassant_copy, castle = castle_copy;
-        memcpy(king_square, king_square_copy, 8);
+        restore_board();
     }
     return nodes;
 }

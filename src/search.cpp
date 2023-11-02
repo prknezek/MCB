@@ -15,6 +15,8 @@ int ply;
 
 // max ply that we can reach within a search
 #define max_ply 64
+// null move pruning constant
+#define R 2
 
 // killer moves [id][ply]
 int killer_moves[2][max_ply];
@@ -167,14 +169,8 @@ int quiescence(int alpha, int beta) {
     
     // go through all possible moves
     for (int i = 0; i < move_list->count; i++) {
-        // create board state copy variables
-        int board_copy[128], king_square_copy[2];
-        int side_copy, enpassant_copy, castle_copy;
-
         // copy board state
-        memcpy(board_copy, board, 512);
-        side_copy = side, enpassant_copy = enpassant, castle_copy = castle;
-        memcpy(king_square_copy, king_square, 8);
+        copy_board();
 
         // increment ply
         ply++;
@@ -194,9 +190,7 @@ int quiescence(int alpha, int beta) {
         ply--;
 
         // restore board position
-        memcpy(board, board_copy, 512);
-        side = side_copy, enpassant = enpassant_copy, castle = castle_copy;
-        memcpy(king_square, king_square_copy, 8);
+        restore_board();
     
         // fail-hard beta cutoff
         if (score >= beta) {
@@ -249,14 +243,8 @@ int nega_max(int depth, int alpha, int beta) {
 
     // go through all possible moves
     for (int i = 0; i < move_list->count; i++) {
-        // create board state copy variables
-        int board_copy[128], king_square_copy[2];
-        int side_copy, enpassant_copy, castle_copy;
-
         // copy board state
-        memcpy(board_copy, board, 512);
-        side_copy = side, enpassant_copy = enpassant, castle_copy = castle;
-        memcpy(king_square_copy, king_square, 8);
+        copy_board();
 
         // increment ply
         ply++;
@@ -321,10 +309,8 @@ int nega_max(int depth, int alpha, int beta) {
         // decrement ply
         ply--;
 
-        // restore board position
-        memcpy(board, board_copy, 512);
-        side = side_copy, enpassant = enpassant_copy, castle = castle_copy;
-        memcpy(king_square, king_square_copy, 8);
+        // restore board state
+        restore_board();
 
         // increment the number of moves searched so far
         moves_searched++;

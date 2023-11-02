@@ -544,14 +544,8 @@ void new_generate_moves(moves *move_list) {
 int make_move(int move, int capture_flag) {
     // make quiet move
     if (capture_flag == all_moves) {
-        // create board state copy variables
-        int board_copy[128], king_square_copy[2];
-        int side_copy, enpassant_copy, castle_copy;
-
         // copy board state
-        memcpy(board_copy, board, 512);
-        side_copy = side, enpassant_copy = enpassant, castle_copy = castle;
-        memcpy(king_square_copy, king_square, 8);
+        copy_board();
 
         // decode move
         int from_square = get_move_start(move);
@@ -647,9 +641,7 @@ int make_move(int move, int capture_flag) {
         // take move back if king is in check
         if (in_check(side)) {
             // restore board position
-            memcpy(board, board_copy, 512);
-            side = side_copy, enpassant = enpassant_copy, castle = castle_copy;
-            memcpy(king_square, king_square_copy, 8);
+            restore_board();
             // illegal move
             return 0;
         }

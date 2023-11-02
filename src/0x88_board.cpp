@@ -58,7 +58,7 @@ int main() {
         parse_fen(tricky_position);
         print_board();
 
-        search(6);
+        search(7);
 
     } else {
         // connect to the GUI
