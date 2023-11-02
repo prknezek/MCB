@@ -66,6 +66,13 @@ int main() {
         cout << "Nodes: " << nodes << endl;
         cout << "Time: " << get_time_ms() - start_time << "ms" << endl;
         print_move(NEXT_MOVE);
+        // go through pv line
+        for (int i = 0; i < pv_length[0]; ++i) {
+            int move = pv_table[0][i];
+            cout << square_to_coords[get_move_start(move)] << square_to_coords[get_move_target(move)] << promoted_pieces[get_promoted_piece(move)];
+            cout << " ";
+        }
+        cout << endl;
 
         // cout << '\n' << evaluate() << endl;
         // make_move(encode_move(d5, e6, 0, 0, 0, 0, 0), all_moves);

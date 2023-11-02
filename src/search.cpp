@@ -15,9 +15,13 @@ int ply;
 
 // killer moves [id][ply]
 int killer_moves[2][64];
-
 // history moves [piece][square]
 int history_moves[12][64];
+
+// PV length
+int pv_length[64];
+// PV table
+int pv_table[64][64];
 
 // order moves for a more efficient negamax function 
 void order_moves(moves *move_list) {
@@ -42,11 +46,10 @@ void order_moves(moves *move_list) {
 
         // promoting a pawn is likely a good move
         if (get_promoted_piece(move) != e) {
-            if (is_white_piece(get_promoted_piece(move))) {
+            if (is_white_piece(get_promoted_piece(move)))
                 move_score += piece_value[0][get_promoted_piece(move) - 1];
-            } else {
+            else
                 move_score -= piece_value[1][get_promoted_piece(move) - 7];
-            }
         }
 
         // penalize moving pieces to a square that's attacked by an opponent pawn
@@ -156,18 +159,15 @@ int quiescence(int alpha, int beta) {
 
 // nega max function
 int nega_max(int depth, int alpha, int beta) {
+    // init PV length
+    pv_length[ply] = ply;
+
     // base case we evaluate final board position
     if (depth == 0) {
         nodes++;
         // run quiescence search to avoid horizon effect (capture of piece on next move)
         return quiescence(alpha, beta);
     }
-
-    // best move so far
-    int best_sofar;
-
-    // old alpha value
-    int old_alpha = alpha;
 
     moves move_list[1];
     // generate all possible moves at current board position
@@ -233,11 +233,16 @@ int nega_max(int depth, int alpha, int beta) {
             }
             // PV node (move)
             alpha = score;
-            // if root move
-            if (ply == 0) {
-                // associate best move with best score
-                best_sofar = move_list->moves[i];
+
+            // write PV move to PV table
+            pv_table[ply][ply] = move_list->moves[i];
+            // loop over the next ply
+            for (int j = ply + 1; j < pv_length[ply + 1]; j++) {
+                // copy move from deeper ply into a current ply's line
+                pv_table[ply][j] = pv_table[ply + 1][j];
             }
+            // adjust PV length
+            pv_length[ply] = pv_length[ply + 1];
         }
 
         // check for checkmate or stalemate
@@ -248,12 +253,8 @@ int nega_max(int depth, int alpha, int beta) {
             return 0;
         }
     }
-    
-    if (old_alpha != alpha) {
-        // init best move
-        NEXT_MOVE = best_sofar;
-    }
-
+    // set next move variable
+    NEXT_MOVE = pv_table[0][0];
     // node (move) fails low
     return alpha;
 }
