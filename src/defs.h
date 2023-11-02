@@ -24,6 +24,7 @@ extern int board[128];
 
 extern char start_position[];
 extern char tricky_position[];
+extern char killer_position[];
 
 // square encoding
 // no_sq is reserved for the enpassant square

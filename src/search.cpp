@@ -10,6 +10,15 @@ using std::pair;
 using std::make_pair;
 using std::sort;
 
+// half move counter
+int ply;
+
+// killer moves [id][ply]
+int killer_moves[2][64];
+
+// history moves [piece][square]
+int history_moves[12][64];
+
 // order moves for a more efficient negamax function 
 void order_moves(moves *move_list) {
     // create a vector of pairs to store the move and its score
@@ -22,12 +31,13 @@ void order_moves(moves *move_list) {
         int move_piece = board[get_move_start(move)];
         int capture_piece = board[get_move_target(move)];
 
+        // MVV-LVA heuristic
         // prioritize capturing opponent's most valuable piece with out least valuable piece
         if (capture_piece != e) {
             if (is_white_piece(capture_piece))
-                move_score = 10 * piece_value[0][capture_piece - 1] - piece_value[1][move_piece - 7];
+                move_score = 10 * piece_value[0][capture_piece - 1] - piece_value[1][move_piece - 7] + 10000;
             else if (is_black_piece(capture_piece))
-                move_score = 10 * piece_value[1][capture_piece - 7] - piece_value[0][move_piece - 1];
+                move_score = 10 * piece_value[1][capture_piece - 7] - piece_value[0][move_piece - 1] + 10000;
         }
 
         // promoting a pawn is likely a good move
@@ -45,6 +55,22 @@ void order_moves(moves *move_list) {
                 move_score -= piece_value[0][move_piece - 1];
             } else {
                 move_score -= piece_value[1][move_piece - 7];
+            }
+        }
+
+        // killer heuristic and history heuristic
+        if (capture_piece == e) {
+            // score 1st killer move
+            if (killer_moves[0][ply] == move) {
+                move_score += 9000;
+            }
+            // score 2nd killer move
+            else if (killer_moves[1][ply] == move) {
+                move_score += 8000;
+            }
+            // score history move
+            else {
+                move_score += history_moves[move_piece - 1][get_move_target(move)];
             }
         }
 
@@ -95,14 +121,23 @@ int quiescence(int alpha, int beta) {
         side_copy = side, enpassant_copy = enpassant, castle_copy = castle;
         memcpy(king_square_copy, king_square, 8);
 
+        // increment ply
+        ply++;
+
         // if we make an illegal move skip it
         if (!make_move(move_list->moves[i], only_captures)) {
+            // decrement ply
+            ply--;
             // go to next loop iteration
             continue;
         }
 
+        // score current move
         int score = -quiescence(-beta, -alpha);
         
+        // decrement ply
+        ply--;
+
         // restore board position
         memcpy(board, board_copy, 512);
         side = side_copy, enpassant = enpassant_copy, castle = castle_copy;
@@ -151,15 +186,24 @@ int nega_max(int depth, int alpha, int beta) {
         side_copy = side, enpassant_copy = enpassant, castle_copy = castle;
         memcpy(king_square_copy, king_square, 8);
 
+        // increment ply
+        ply++;
+
         // if we make an illegal move skip it
         int legal_moves = move_list->count;
         if (!make_move(move_list->moves[i], all_moves)) {
+            // decrement ply
+            ply--;
+
             legal_moves--;
             continue;
         }
 
         nodes++;
         int score = -nega_max(depth - 1, -beta, -alpha);
+
+        // decrement ply
+        ply--;
 
         // restore board position
         memcpy(board, board_copy, 512);
@@ -168,16 +212,29 @@ int nega_max(int depth, int alpha, int beta) {
     
         // fail-hard beta cutoff
         if (score >= beta) {
+            // on quiet moves
+            if (get_move_capture(move_list->moves[i]) == 0) {
+                // store killer moves
+                // we store second killer first because it was killer move of previous iteration
+                killer_moves[1][ply] = killer_moves[0][ply];
+                killer_moves[0][ply] = move_list->moves[i];
+            }
             // node (move) fails high
             return beta;
         }
 
         // found a better move
         if (score > alpha) {
+            // on quiet moves
+            if (get_move_capture(move_list->moves[i]) == 0) {
+                int piece = board[get_move_start(move_list->moves[i])];
+                // store history moves
+                history_moves[piece - 1][get_move_target(move_list->moves[i])] += depth * depth;
+            }
             // PV node (move)
             alpha = score;
             // if root move
-            if (depth == DEPTH) {
+            if (ply == 0) {
                 // associate best move with best score
                 best_sofar = move_list->moves[i];
             }
