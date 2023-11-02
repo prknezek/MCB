@@ -50,7 +50,7 @@ int main() {
     initialize_char_pieces();
     initialize_promoted_pieces();
 
-    int debug = 0;
+    int debug = 1;
 
     if (debug) {
         // parse fen string
@@ -60,9 +60,6 @@ int main() {
 
         search(6);
 
-        // cout << '\n' << evaluate() << endl;
-        // make_move(encode_move(d5, e6, 0, 0, 0, 0, 0), all_moves);
-        // cout << evaluate() << endl;
     } else {
         // connect to the GUI
         uci_loop();

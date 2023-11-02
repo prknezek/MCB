@@ -28,6 +28,10 @@ int pv_table[max_ply][max_ply];
 // follow PV & score PV move
 int follow_pv, score_pv;
 
+// late move reduction variables
+int full_depth_moves = 4;
+int LMR_limit = 3;
+
 // enable PV move scoring
 void enable_pv_scoring(moves *move_list) {
     // disable following PV line
@@ -43,6 +47,19 @@ void enable_pv_scoring(moves *move_list) {
         }
     }
 }
+
+/*
+    ========================
+         Move ordering
+    ========================
+    1. PV move
+    2. Captures in MVV/LVA
+    3. 1st killer move
+    4. 2nd killer move
+    5. History moves
+    6. Pawn promotions
+    7. Unsorted moves
+*/
 
 // order moves for a more efficient negamax function 
 void order_moves(moves *move_list) {
@@ -226,6 +243,10 @@ int nega_max(int depth, int alpha, int beta) {
 
     // order moves based on heuristics
     order_moves(move_list);
+
+    // number of moves searched in a move list
+    int moves_searched = 0;
+
     // go through all possible moves
     for (int i = 0; i < move_list->count; i++) {
         // create board state copy variables
@@ -240,8 +261,10 @@ int nega_max(int depth, int alpha, int beta) {
         // increment ply
         ply++;
 
-        // if we make an illegal move skip it
+        // init legal moves for detecting checkmate or stalemate
         int legal_moves = move_list->count;
+        // MAKE THE MOVE
+        // if we make an illegal move skip it
         if (!make_move(move_list->moves[i], all_moves)) {
             // decrement ply
             ply--;
@@ -261,8 +284,38 @@ int nega_max(int depth, int alpha, int beta) {
                 score = -nega_max(depth - 1, -beta, -alpha);
             }
         } else {
-            // normal nega_max search with full window
-            score = -nega_max(depth - 1, -beta, -alpha);
+            // Full depth search for first move
+            if (moves_searched == 0) {
+                // normal nega_max search with full window
+                score = -nega_max(depth - 1, -beta, -alpha);
+            } else {
+                // conditions to consider late move reduction (LMR)
+                /* we reduce moves (LMR) if:
+                      1. we're inside the LMR window
+                      2. the move does not give a check
+                      3. the move is not a capture
+                      4. the move is not a promotion
+                */
+                if (moves_searched >= full_depth_moves &&
+                    depth >= LMR_limit &&
+                    !in_check(side^1) &&
+                    get_move_capture(move_list->moves[i]) == 0 &&
+                    get_promoted_piece(move_list->moves[i]) == 0) {
+                    // search move with reduced depth
+                    score = -nega_max(depth - 2, -alpha - 1, -alpha);
+                } else {
+                    // change score to ensure that full-depth search is done
+                    score = alpha + 1;
+                }
+                // found better move during LMR re-search at full depth
+                if (score > alpha) {
+                    // normal nega_max search with narrowed window
+                    score = -nega_max(depth - 1, -alpha - 1, -alpha);
+                    // if LMR fails re-search at full depth and full window
+                    if (score > alpha && score < beta)
+                        score = -nega_max(depth - 1, -beta, -alpha);
+                }
+            }
         }
 
         // decrement ply
@@ -272,7 +325,10 @@ int nega_max(int depth, int alpha, int beta) {
         memcpy(board, board_copy, 512);
         side = side_copy, enpassant = enpassant_copy, castle = castle_copy;
         memcpy(king_square, king_square_copy, 8);
-    
+
+        // increment the number of moves searched so far
+        moves_searched++;
+
         // fail-hard beta cutoff
         if (score >= beta) {
             // on quiet moves
