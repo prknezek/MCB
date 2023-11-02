@@ -1,8 +1,6 @@
 #include "defs.h"
 #include <limits>
 
-using std::numeric_limits;
-
 // board encoding
 int board[128] = {
     r, n, b, q, k, b, n, r,  o, o, o, o, o, o, o, o,
@@ -88,7 +86,7 @@ int piece_value[2][6] = { 82, 337, 365, 477, 1025, 12000,
                           94, 281, 297, 512,  936, 12000};
 
 // move generation variables
-int CHECKMATE = numeric_limits<int>::max();
+int CHECKMATE = 50000;
 int NEXT_MOVE = 0;
 int nodes = 0;
 

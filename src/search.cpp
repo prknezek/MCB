@@ -49,7 +49,6 @@ void order_moves(moves *move_list) {
     // create a vector of pairs to store the move and its score
     vector<pair<int, int>> move_scores;
 
-
     for (int i = 0; i < move_list->count; ++i) {
         int move = move_list->moves[i];
 
@@ -88,7 +87,7 @@ void order_moves(moves *move_list) {
                     move_score -= piece_value[1][move_piece - 7];
                 }
             }
-        } 
+        }
         // quiet moves
         else if (capture_piece == e) {
             // killer heuristic and history heuristic
@@ -195,8 +194,14 @@ int quiescence(int alpha, int beta) {
 
 // nega max function
 int nega_max(int depth, int alpha, int beta) {
+    // init found PV move flag
+    int found_pv_move = 0;
+
     // init PV length
     pv_length[ply] = ply;
+
+    // init score
+    int score = 0;
 
     // base case we evaluate final board position
     if (depth == 0) {
@@ -246,7 +251,19 @@ int nega_max(int depth, int alpha, int beta) {
         }
 
         nodes++;
-        int score = -nega_max(depth - 1, -beta, -alpha);
+
+        // implementing Principle Variation Search (PVS)
+        if (found_pv_move) {
+            score = -nega_max(depth - 1, -alpha - 1, -alpha);
+            // if score is within the window
+            if (score > alpha && score < beta) {
+                // re-search with a full window
+                score = -nega_max(depth - 1, -beta, -alpha);
+            }
+        } else {
+            // normal nega_max search with full window
+            score = -nega_max(depth - 1, -beta, -alpha);
+        }
 
         // decrement ply
         ply--;
@@ -279,6 +296,8 @@ int nega_max(int depth, int alpha, int beta) {
             }
             // PV node (move)
             alpha = score;
+            // found PV move
+            found_pv_move = 1;
 
             // write PV move to PV table
             pv_table[ply][ply] = move_list->moves[i];
