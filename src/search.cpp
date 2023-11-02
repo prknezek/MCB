@@ -225,6 +225,27 @@ int nega_max(int depth, int alpha, int beta) {
         return evaluate();
     }
 
+    // Null Move Pruning
+    if (depth >= 3 && !in_check(side^1) && ply) {
+        // copy board state
+        copy_board();
+        // switch side to give opponent an extra (null) move
+        side ^= 1;
+        // reset enpassant capture square
+        enpassant = no_sq;
+
+        // search moves with reduced depth to find beta cutoffs
+        score = -nega_max(depth - 1 - R, -beta, -beta + 1);
+
+        // restore board state
+        restore_board();
+
+        // fail hard beta cutoff
+        if (score >= beta)
+            // node fails high
+            return beta;
+    }
+
     moves move_list[1];
     // generate all possible moves at current board position
     generate_moves(move_list);
