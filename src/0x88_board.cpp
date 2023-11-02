@@ -57,22 +57,8 @@ int main() {
         char fen[] = "rn1k1bnr/pp3ppp/4p3/2pN4/6b1/5N2/PPP1PPPP/R1B1KB1R w KQ - 3 6";
         parse_fen(tricky_position);
         print_board();
-        
-        // get best next move
-        int start_time = get_time_ms();
-        DEPTH = 5;
 
-        nega_max(DEPTH, -CHECKMATE, CHECKMATE);
-        cout << "Nodes: " << nodes << endl;
-        cout << "Time: " << get_time_ms() - start_time << "ms" << endl;
-        print_move(NEXT_MOVE);
-        // go through pv line
-        for (int i = 0; i < pv_length[0]; ++i) {
-            int move = pv_table[0][i];
-            cout << square_to_coords[get_move_start(move)] << square_to_coords[get_move_target(move)] << promoted_pieces[get_promoted_piece(move)];
-            cout << " ";
-        }
-        cout << endl;
+        search(6);
 
         // cout << '\n' << evaluate() << endl;
         // make_move(encode_move(d5, e6, 0, 0, 0, 0, 0), all_moves);

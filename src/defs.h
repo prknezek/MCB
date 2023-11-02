@@ -84,7 +84,6 @@ extern int king_offsets[8];
 extern int piece_value[2][6];
 
 extern int CHECKMATE;
-extern int DEPTH;
 extern int NEXT_MOVE;
 extern int nodes;
 

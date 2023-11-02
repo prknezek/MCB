@@ -12,5 +12,6 @@ extern int pv_table[64][64];
 
 void order_moves(moves *move_list);
 int nega_max(int depth, int alpha, int beta);
+void search(int depth);
 
 #endif

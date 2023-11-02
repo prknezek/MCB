@@ -122,11 +122,9 @@ void parse_go(char *command) {
     // handle fixed depth search
     if (current_depth = strstr(command, "depth")) {
         depth = atoi(current_depth + 6);
-        DEPTH = depth;
     } else {
         // different time controls
         depth = 6;
-        DEPTH = 6;
     }
 
     // search position

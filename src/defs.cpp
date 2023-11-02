@@ -89,7 +89,6 @@ int piece_value[2][6] = { 82, 337, 365, 477, 1025, 12000,
 
 // move generation variables
 int CHECKMATE = numeric_limits<int>::max();
-int DEPTH = 6;
 int NEXT_MOVE = 0;
 int nodes = 0;
 

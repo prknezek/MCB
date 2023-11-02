@@ -13,15 +13,18 @@ using std::sort;
 // half move counter
 int ply;
 
+// max ply that we can reach within a search
+#define max_ply 64
+
 // killer moves [id][ply]
-int killer_moves[2][64];
+int killer_moves[2][max_ply];
 // history moves [piece][square]
 int history_moves[12][64];
 
-// PV length
-int pv_length[64];
-// PV table
-int pv_table[64][64];
+// PV length [ply]
+int pv_length[max_ply];
+// PV table [ply][ply]
+int pv_table[max_ply][max_ply];
 
 // order moves for a more efficient negamax function 
 void order_moves(moves *move_list) {
@@ -168,6 +171,10 @@ int nega_max(int depth, int alpha, int beta) {
         // run quiescence search to avoid horizon effect (capture of piece on next move)
         return quiescence(alpha, beta);
     }
+    // we are too deep, so we will overflow arrays relying on max ply constant
+    if (ply > max_ply - 1) {
+        return evaluate();
+    }
 
     moves move_list[1];
     // generate all possible moves at current board position
@@ -253,8 +260,73 @@ int nega_max(int depth, int alpha, int beta) {
             return 0;
         }
     }
-    // set next move variable
-    NEXT_MOVE = pv_table[0][0];
     // node (move) fails low
     return alpha;
+}
+
+// search position for the best move
+void search(int depth) {
+    // reset nodes counter
+    nodes = 0;
+
+    // clear helper data structures for search
+    memset(killer_moves, 0, sizeof(killer_moves));
+    memset(history_moves, 0, sizeof(history_moves));
+    memset(pv_table, 0, sizeof(pv_table));
+    memset(pv_length, 0, sizeof(pv_length));
+
+    int START_TIME = get_time_ms();
+
+    int score = nega_max(depth, -CHECKMATE, CHECKMATE);
+
+    cout << "\nDepth: " << depth << endl;
+    cout << "Score: " << score << endl;
+    cout << "Nodes: " << nodes << endl;
+    cout << "Time: " << get_time_ms() - START_TIME << "ms" << endl;
+
+    NEXT_MOVE = pv_table[0][0];
+    cout << "Best Move: " << get_move_string(NEXT_MOVE) << endl;
+
+    cout << "PV Line: ";
+    for (int i = 0; i < pv_length[0]; ++i) {
+        int move = pv_table[0][i];
+        cout << square_to_coords[get_move_start(move)] << square_to_coords[get_move_target(move)] << promoted_pieces[get_promoted_piece(move)];
+        cout << " ";
+    }
+    cout << endl;
+
+
+
+
+
+
+
+    // reset nodes counter
+    nodes = 0;
+
+    // clear helper data structures for search
+    memset(killer_moves, 0, sizeof(killer_moves));
+    memset(history_moves, 0, sizeof(history_moves));
+    memset(pv_table, 0, sizeof(pv_table));
+    memset(pv_length, 0, sizeof(pv_length));
+
+    // iterative deepening
+    for (int current_depth = 1; current_depth <= depth; ++current_depth) {
+        score = nega_max(current_depth, -CHECKMATE, CHECKMATE);
+
+        cout << "\nDepth: " << current_depth << "   ";
+        cout << "Score: " << score << "   ";
+        cout << "Nodes: " << nodes << endl;
+
+        cout << "PV Line: ";
+        for (int i = 0; i < pv_length[0]; ++i) {
+            int move = pv_table[0][i];
+            cout << square_to_coords[get_move_start(move)] << square_to_coords[get_move_target(move)] << promoted_pieces[get_promoted_piece(move)];
+            cout << " ";
+        }
+        cout << endl;
+    }
+    
+    NEXT_MOVE = pv_table[0][0];
+    cout << "Best Move: " << get_move_string(NEXT_MOVE) << endl;
 }
