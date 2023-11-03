@@ -205,9 +205,6 @@ int quiescence(int alpha, int beta) {
 
 // nega max function
 int nega_max(int depth, int alpha, int beta) {
-    // init found PV move flag
-    int found_pv_node = 0;
-
     // init PV length
     pv_length[ply] = ply;
 
@@ -284,46 +281,39 @@ int nega_max(int depth, int alpha, int beta) {
 
         nodes++;
 
-        // implementing Principle Variation Search (PVS)
-        if (found_pv_node) {
-            score = -nega_max(depth - 1, -alpha - 1, -alpha);
-            // check for failure
-            if (score > alpha && score < beta) {
-                // re-search the move that has failed with a full window
-                score = -nega_max(depth - 1, -beta, -alpha);
-            }
-        } else {
-            // Full depth search for first move
-            if (moves_searched == 0) {
-                // normal nega_max search with full window
-                score = -nega_max(depth - 1, -beta, -alpha);
+        // Full depth search for first move
+        if (moves_searched == 0) {
+            // normal nega_max search with full window
+            score = -nega_max(depth - 1, -beta, -alpha);
+        } 
+        // Late Move Reduction
+        else {
+            // conditions to consider late move reduction (LMR)
+            /* we reduce moves (LMR) if:
+                    1. we're inside the LMR window
+                    2. the move does not give a check
+                    3. the move is not a capture
+                    4. the move is not a promotion
+            */
+            if (moves_searched >= full_depth_moves &&
+                depth >= LMR_limit &&
+                !in_check(side^1) &&
+                get_move_capture(move_list->moves[i]) == 0 &&
+                get_promoted_piece(move_list->moves[i]) == 0) {
+                
+                // search move with reduced depth
+                score = -nega_max(depth - 2, -alpha - 1, -alpha);
             } else {
-                // conditions to consider late move reduction (LMR)
-                /* we reduce moves (LMR) if:
-                      1. we're inside the LMR window
-                      2. the move does not give a check
-                      3. the move is not a capture
-                      4. the move is not a promotion
-                */
-                if (moves_searched >= full_depth_moves &&
-                    depth >= LMR_limit &&
-                    !in_check(side^1) &&
-                    get_move_capture(move_list->moves[i]) == 0 &&
-                    get_promoted_piece(move_list->moves[i]) == 0) {
-                    // search move with reduced depth
-                    score = -nega_max(depth - 2, -alpha - 1, -alpha);
-                } else {
-                    // change score to ensure that full-depth search is done
-                    score = alpha + 1;
-                }
-                // found better move during LMR re-search at full depth
-                if (score > alpha) {
-                    // normal nega_max search with narrowed window
-                    score = -nega_max(depth - 1, -alpha - 1, -alpha);
-                    // if LMR fails re-search at full depth and full window
-                    if (score > alpha && score < beta)
-                        score = -nega_max(depth - 1, -beta, -alpha);
-                }
+                // change score to ensure that full-depth search is done
+                score = alpha + 1;
+            }
+            // Principle Variation Search PVS
+            if (score > alpha) {
+                // normal nega_max search with narrowed window
+                score = -nega_max(depth - 1, -alpha - 1, -alpha);
+                // if LMR fails re-search at full depth and full window
+                if (score > alpha && score < beta)
+                    score = -nega_max(depth - 1, -beta, -alpha);
             }
         }
 
@@ -359,8 +349,6 @@ int nega_max(int depth, int alpha, int beta) {
             }
             // PV node (move)
             alpha = score;
-            // found PV move
-            found_pv_node = 1;
 
             // write PV move to PV table
             pv_table[ply][ply] = move_list->moves[i];
@@ -400,24 +388,43 @@ void search(int depth) {
     memset(pv_table, 0, sizeof(pv_table));
     memset(pv_length, 0, sizeof(pv_length));
 
+    int alpha = -50000;
+    int beta = 50000;
+
     // iterative deepening
-    for (int current_depth = 1; current_depth <= depth; ++current_depth) {
+    int current_depth = 1;
+    while (current_depth <= depth) {
         // enable follow PV flag
         follow_pv = 1;
-        
-        score = nega_max(current_depth, -CHECKMATE, CHECKMATE);
+        // get best next move at current depth
+        score = nega_max(current_depth, alpha, beta);
+
+        // Aspiration Window
+        // we fell outside the window so try again with full-width window
+        if ((score <= -50000) || (score >= 50000)) {
+            alpha = -50000;
+            beta = 50000;
+            current_depth--;
+            continue;
+        }
+        // set up the window for the next iteration
+        alpha = score - 50;
+        beta = score + 50;
 
         cout << "\nDepth: " << current_depth << "   ";
         cout << "Score: " << score << "   ";
         cout << "Nodes: " << nodes << endl;
 
-        cout << "PV Line: ";
+        cout << "PV Line " << pv_length[0] << ": ";
         for (int i = 0; i < pv_length[0]; ++i) {
             int move = pv_table[0][i];
             cout << square_to_coords[get_move_start(move)] << square_to_coords[get_move_target(move)] << promoted_pieces[get_promoted_piece(move)];
             cout << " ";
         }
         cout << endl;
+
+        // increment current depth
+        current_depth++;
     }
     
     NEXT_MOVE = pv_table[0][0];

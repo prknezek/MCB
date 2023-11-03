@@ -50,7 +50,7 @@ int main() {
     initialize_char_pieces();
     initialize_promoted_pieces();
 
-    int debug = 1;
+    int debug = 0;
 
     if (debug) {
         // parse fen string
@@ -58,8 +58,7 @@ int main() {
         parse_fen(tricky_position);
         print_board();
 
-        search(7);
-
+        search(9);
     } else {
         // connect to the GUI
         uci_loop();
