@@ -259,8 +259,6 @@ void reset_board() {
 
 // parse FEN
 void parse_fen(char *fen) {
-    // initialize piece_squares array with no_sq
-    fill_piece_squares();
     // reset board
     reset_board();
 
@@ -285,11 +283,6 @@ void parse_fen(char *fen) {
 
                     // increment FEN pointer to next char
                     *fen++;
-
-                    // update piece's piece_count array value
-                    add_piece_count(board[square]);
-                    // add square to piece_squares array
-                    add_piece_square(square);
                 }
                 // match empty squares
                 if (*fen >= '0' && *fen <= '9') {

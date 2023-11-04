@@ -557,11 +557,6 @@ int make_move(int move, int capture_flag) {
 
         int piece = board[from_square];
 
-        // if move captures another piece then we set that square to no_sq
-        if (get_move_capture(move)) {
-            update_piece_square(board[target_square], target_square, no_sq);
-        }
-
         // move piece
         board[target_square] = board[from_square];
         board[from_square] = e;
@@ -569,13 +564,6 @@ int make_move(int move, int capture_flag) {
         // pawn promotion
         if (promoted_piece != e) {
             board[target_square] = promoted_piece;
-            add_piece_square(target_square);
-            update_piece_square(piece, from_square, no_sq);
-            subtract_piece_count(piece);
-            add_piece_count(promoted_piece);
-        } else {
-            // update piece square in piece_squares array if we arent castling or promoting
-            update_piece_square(piece, from_square, target_square);
         }
 
         // enpassant capture
@@ -601,25 +589,21 @@ int make_move(int move, int capture_flag) {
             switch (target_square) {
                 // white king side castling
                 case g1:
-                    update_piece_square(board[h1], h1, f1);
                     board[f1] = board[h1];
                     board[h1] = e;
                     break;
                 // white queen side castling
                 case c1:
-                    update_piece_square(board[a1], a1, d1);
                     board[d1] = board[a1];
                     board[a1] = e;
                     break;
                 // black king side castling
                 case g8:
-                    update_piece_square(board[h8], h8, f8);
                     board[f8] = board[h8];
                     board[h8] = e;
                     break;
                 // black queen side castling
                 case c8:
-                    update_piece_square(board[a8], a8, d8);
                     board[d8] = board[a8];
                     board[a8] = e;
                     break; 

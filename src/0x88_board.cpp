@@ -58,7 +58,7 @@ int main() {
         parse_fen(tricky_position);
         print_board();
 
-        search(9);
+        search(7);
     } else {
         // connect to the GUI
         uci_loop();
