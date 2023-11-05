@@ -237,7 +237,12 @@ void print_board() {
     cout << " Enpassant: " << ((enpassant == no_sq) ? "-" : square_to_coords[enpassant]) << endl;
     cout << " King square: " << square_to_coords[king_square[side]] << endl;
     // print position ID aka Zobrist key
-    printf(" \nZobrist key: %lx\n", generate_zobrist_key());
+    printf(" \nZobrist key: %lx", hash_key);
+    if (hash_key == generate_zobrist_key()) {
+        printf(" (match)\n");
+    } else {
+        printf(" (ERROR: NO MATCH)\n");
+    }
 }
 
 // reset board

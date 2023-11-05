@@ -2,6 +2,7 @@
 #define CHESSUTILS_H
 
 #include "defs.h"
+#include "tt.h"
 
 // turn a move into an integer
 /*
@@ -48,17 +49,19 @@
 // decode move's castling flag
 #define get_move_castling(move) ((move >> 21) & 0x1)
 
-#define copy_board()                                                                         \
+#define copy_board()                                                   \
     int board_copy[128], king_square_copy[2];                          \
     int side_copy, enpassant_copy, castle_copy;                        \
     memcpy(board_copy, board, 512);                                    \
     side_copy = side, enpassant_copy = enpassant, castle_copy = castle;\
     memcpy(king_square_copy, king_square, 8);                          \
+    uint64_t hash_key_copy = hash_key;                                 \
 
 #define restore_board()                                                \
     memcpy(board, board_copy, 512);                                    \
     side = side_copy, enpassant = enpassant_copy, castle = castle_copy;\
     memcpy(king_square, king_square_copy, 8);                          \
+    hash_key = hash_key_copy;                                          \
 
 // move list structure
 typedef struct {

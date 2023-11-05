@@ -1,5 +1,6 @@
 #include "defs.h"
 #include "movegen.h"
+#include "tt.h"
 
 // move generator
 void generate_moves(moves *move_list) {
@@ -555,32 +556,56 @@ int make_move(int move, int capture_flag) {
         int double_pawn_move_flag = get_move_pawn(move);
         int castle_flag = get_move_castling(move);
 
+        // get the piece that is making the move
         int piece = board[from_square];
 
         // move piece
         board[target_square] = board[from_square];
         board[from_square] = e;
 
+        // update hash for moved piece (xor out old square and xor in new square)
+        hash_key ^= piece_keys[piece - 1][from_square];
+        hash_key ^= piece_keys[piece - 1][target_square];
+
         // pawn promotion
         if (promoted_piece != e) {
+            // place promoted piece on the board
             board[target_square] = promoted_piece;
+            // update hash for promoted piece (xor out pawn from target square)
+            hash_key ^= piece_keys[piece - 1][target_square];
+            // update hash for promoted piece (add promoted piece to target square)
+            hash_key ^= piece_keys[promoted_piece - 1][target_square];
         }
 
         // enpassant capture
         if (enpassant_flag) {
-            side == white ? 
-                (board[target_square + 16] = e) : 
-                (board[target_square - 16] = e);
+            if (side == white) {
+                board[target_square + 16] = e;
+                // update hash for captured pawn (xor out pawn from enpassant square)
+                hash_key ^= piece_keys[p - 1][target_square + 16];
+            } else {
+                board[target_square - 16] = e;
+                // update hash for captured pawn (xor out pawn from enpassant square)
+                hash_key ^= piece_keys[P - 1][target_square - 16];
+            }
         }
 
+        // update hash to remove enpassant square if there is one
+        if (enpassant != no_sq) {
+            hash_key ^= enpassant_keys[enpassant];
+        }
         // reset enpassant square
         enpassant = no_sq;
 
         // double pawn push
         if (double_pawn_move_flag) {
-            side == white ? 
-                (enpassant = target_square + 16) :
-                (enpassant = target_square - 16);
+            if (side == white) {
+                enpassant = target_square + 16;
+            } else {
+                enpassant = target_square - 16;
+            }
+            // update hash to add enpassant square
+            hash_key ^= enpassant_keys[enpassant];
         }
 
         // castle move
@@ -589,38 +614,65 @@ int make_move(int move, int capture_flag) {
             switch (target_square) {
                 // white king side castling
                 case g1:
+                    // update hash for rook (xor out rook from h1)
+                    hash_key ^= piece_keys[R - 1][h1];
+                    // update hash for rook (xor in rook to f1)
+                    hash_key ^= piece_keys[R - 1][f1];
                     board[f1] = board[h1];
                     board[h1] = e;
                     break;
                 // white queen side castling
                 case c1:
+                    // update hash for rook (xor out rook from a1)
+                    hash_key ^= piece_keys[R - 1][a1];
+                    // update hash for rook (xor in rook to d1)
+                    hash_key ^= piece_keys[R - 1][d1];
                     board[d1] = board[a1];
                     board[a1] = e;
                     break;
                 // black king side castling
                 case g8:
+                    // update hash for rook (xor out rook from h8)
+                    hash_key ^= piece_keys[r - 1][h8];
+                    // update hash for rook (xor in rook to f8)
+                    hash_key ^= piece_keys[r - 1][f8];
                     board[f8] = board[h8];
                     board[h8] = e;
                     break;
                 // black queen side castling
                 case c8:
+                    // update hash for rook (xor out rook from a8)
+                    hash_key ^= piece_keys[r - 1][a8];
+                    // update hash for rook (xor in rook to d8)
+                    hash_key ^= piece_keys[r - 1][d8];
                     board[d8] = board[a8];
                     board[a8] = e;
                     break; 
             }
         }
 
-        // update king square
+        // update king square array
         if (board[target_square] == K || board[target_square] == k) {
             king_square[side] = target_square;
         }
+
+        // store old castling rights
+        int old_castle = castle;
 
         // update castling rights
         castle &= castling_rights[from_square];
         castle &= castling_rights[target_square];
 
+        // if castling rights changed, update hash
+        if (castle != old_castle) {
+            hash_key ^= castling_keys[old_castle];
+            hash_key ^= castling_keys[castle];
+        }
+
         // change side
         side ^= 1;
+        // update hash for side to move
+        hash_key ^= side_key;
 
         // take move back if king is in check
         if (in_check(side)) {
