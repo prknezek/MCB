@@ -242,6 +242,7 @@ void print_board() {
         printf(" (match)\n");
     } else {
         printf(" (ERROR: NO MATCH)\n");
+        getchar();
     }
 }
 

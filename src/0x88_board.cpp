@@ -61,11 +61,11 @@ int main() {
 
     if (debug) {
         // parse fen string
-        char fen[] = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
+        char fen[] = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R b KQkq - 0 1";
         
-        parse_fen(fen);
+        parse_fen(start_position);
 
-        print_board();
+        // make_move(encode_move(e8, g8, 0, 0, 0, 0, 1), all_moves);
         
         // search(7);
     } else {

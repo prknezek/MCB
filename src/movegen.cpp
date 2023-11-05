@@ -558,6 +558,7 @@ int make_move(int move, int capture_flag) {
 
         // get the piece that is making the move
         int piece = board[from_square];
+        int target_piece = board[target_square];
 
         // move piece
         board[target_square] = board[from_square];
@@ -566,6 +567,10 @@ int make_move(int move, int capture_flag) {
         // update hash for moved piece (xor out old square and xor in new square)
         hash_key ^= piece_keys[piece - 1][from_square];
         hash_key ^= piece_keys[piece - 1][target_square];
+        // update hash for captured piece (if there is one)
+        if (target_piece != e) {
+            hash_key ^= piece_keys[target_piece - 1][target_square];
+        }
 
         // pawn promotion
         if (promoted_piece != e) {
@@ -656,18 +661,15 @@ int make_move(int move, int capture_flag) {
             king_square[side] = target_square;
         }
 
-        // store old castling rights
-        int old_castle = castle;
+        // update hash for castling rights (xor out old castling rights)
+        hash_key ^= castling_keys[castle];
 
         // update castling rights
         castle &= castling_rights[from_square];
         castle &= castling_rights[target_square];
 
-        // if castling rights changed, update hash
-        if (castle != old_castle) {
-            hash_key ^= castling_keys[old_castle];
-            hash_key ^= castling_keys[castle];
-        }
+        // update hash for castling rights (xor in new castling rights)
+        hash_key ^= castling_keys[castle];
 
         // change side
         side ^= 1;
