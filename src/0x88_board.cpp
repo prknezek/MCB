@@ -44,21 +44,28 @@ void initialize_promoted_pieces() {
     promoted_pieces[n] = 'n';
 }
 
-// main driver
-int main() {
+void init_all() {
     // initialize conversion arrays
     initialize_char_pieces();
     initialize_promoted_pieces();
 
-    int debug = 0;
+    // init random keys for Transposition table
+    init_random_keys();
+}
+
+// main driver
+int main() {
+    init_all();
+
+    int debug = 1;
 
     if (debug) {
         // parse fen string
-        char fen[] = "rn1k1bnr/pp3ppp/4p3/2pN4/6b1/5N2/PPP1PPPP/R1B1KB1R w KQ - 3 6";
-        parse_fen(tricky_position);
+        char fen[] = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
+        parse_fen(fen);
         print_board();
-
-        search(7);
+        
+        // search(7);
     } else {
         // connect to the GUI
         uci_loop();

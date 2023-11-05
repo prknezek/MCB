@@ -1,4 +1,5 @@
 #include "chess_utils.h"
+#include "tt.h"
 
 #include <chrono>
 #include <string.h>
@@ -235,6 +236,8 @@ void print_board() {
                           << ((castle & qc) ? 'q' : '-') << endl;
     cout << " Enpassant: " << ((enpassant == no_sq) ? "-" : square_to_coords[enpassant]) << endl;
     cout << " King square: " << square_to_coords[king_square[side]] << endl;
+    // print position ID aka Zobrist key
+    printf(" \nZobrist key: %lx\n", generate_zobrist_key());
 }
 
 // reset board
@@ -331,6 +334,9 @@ void parse_fen(char *fen) {
     } else {
         enpassant = no_sq;
     }
+
+    // create zobrist hash for the posiiton
+    hash_key = generate_zobrist_key();
 }
 
 // determines if a square is on the board or not
