@@ -62,12 +62,18 @@ int main() {
     if (debug) {
         // parse fen string
         char fen[] = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R b KQkq - 0 1";
-        
         parse_fen(start_position);
+        print_board();
+        search(7);
 
-        // make_move(encode_move(e8, g8, 0, 0, 0, 0, 1), all_moves);
         clear_tt();
-        // search(7);
+
+        write_hash_entry(1, 30, hash_flag_beta);
+        int score = read_hash_entry(1, 19, 30);
+
+        // print score from hash entry
+        printf("%d\n", score);
+
     } else {
         // connect to the GUI
         uci_loop();

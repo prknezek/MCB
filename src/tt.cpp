@@ -16,14 +16,6 @@ uint64_t side_key;
 // "almost" unique position ID aka Zobrist key
 uint64_t hash_key;
 
-// hash table size in MB (4MB)
-#define hash_size 0x100000 * 4
-
-// transposition table hash flags
-#define hash_flag_exact 0
-#define hash_flag_alpha 1
-#define hash_flag_beta  2
-
 // transposition table data struct
 typedef struct {
     uint64_t hash_key; // almost unique position ID
@@ -45,6 +37,53 @@ void clear_tt() {
         transposition_table[idx].flag = 0;
         transposition_table[idx].eval = 0;
     }
+}
+
+// read hash entry data
+int read_hash_entry(int depth, int alpha, int beta) {
+    // create a TT instance pointer to point to the hash entry
+    // responsible for storing particular hash entry storing the data
+    tt *hash_entry = &transposition_table[hash_key % hash_size];
+
+    // make sure we're dealing with the correct position
+    if (hash_entry->hash_key == hash_key) {
+        // make sure we're dealing with the correct depth
+        if (hash_entry->depth >= depth) {
+            // match the exact (PV node) score
+            if (hash_entry->flag == hash_flag_exact) {
+                // return the exact score
+                printf("exact score: ");
+                return hash_entry->eval;
+            }
+            // match alpha (fail-low node) score
+            if (hash_entry->flag == hash_flag_alpha &&
+                hash_entry->eval <= alpha) {
+                printf("alpha score: ");
+                return alpha;
+            }
+            // match beta (fail-high node) score
+            if (hash_entry->flag == hash_flag_beta &&
+                hash_entry->eval >= beta) {
+                printf("beta score: ");
+                return beta;
+            }
+        }
+    }
+    // if we don't find the hash entry, return no_hash_entry
+    return no_hash_entry;
+}
+
+// write hash entry data
+void write_hash_entry(int depth, int eval, int flag) {
+    // create a TT instance pointer to point to the hash entry
+    // responsible for storing particular hash entry storing the data
+    tt *hash_entry = &transposition_table[hash_key % hash_size];
+
+    // update hash entry data
+    hash_entry->hash_key = hash_key;
+    hash_entry->eval = eval;
+    hash_entry->flag = flag;
+    hash_entry->depth = depth;
 }
 
 // generate 32-bit pseudo random number
