@@ -13,5 +13,6 @@ unsigned int rand32();
 uint64_t rand64();
 void init_random_keys();
 uint64_t generate_zobrist_key();
+void clear_tt();
 
 #endif

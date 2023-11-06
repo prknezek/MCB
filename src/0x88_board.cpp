@@ -66,7 +66,7 @@ int main() {
         parse_fen(start_position);
 
         // make_move(encode_move(e8, g8, 0, 0, 0, 0, 1), all_moves);
-        
+        clear_tt();
         // search(7);
     } else {
         // connect to the GUI
