@@ -16,6 +16,19 @@ uint64_t side_key;
 // "almost" unique position ID aka Zobrist key
 uint64_t hash_key;
 
+// define hash flags
+#define hashfEXACT 0
+#define hashfALPHA 1
+#define hashfBETA  2
+
+typedef struct tagHASHE {
+    uint64_t key;
+    int depth;
+    int flags;
+    int eval;
+    int best_move;
+} HASHE;
+
 // generate 32-bit pseudo random number
 unsigned int rand32() {
     // xorshift algorithm
