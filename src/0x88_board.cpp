@@ -51,29 +51,27 @@ void init_all() {
 
     // init random keys for Transposition table
     init_random_keys();
+
+    // clear hash table
+    clear_tt();
 }
 
 // main driver
 int main() {
     init_all();
 
-    int debug = 1;
+    int debug = 0;
 
     if (debug) {
         // parse fen string
-        char fen[] = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R b KQkq - 0 1";
+        // char fen[] = "r1k5/P7/5p2/7p/4p3/R3K2P/5PP1/8 b - - 0 45";
+        char fen2[] = "r1bq1rk1/pppp1ppp/5n2/4Q3/2B5/2N5/PPP2PPP/R1B1K2R b KQ - 1 10";
+        char checkmate[] = "4k3/Q7/8/4K3/8/8/8/8 w - - 1 10";
         parse_fen(start_position);
+
+        // make_move(encode_move(d8, e8, 0, 0, 0, 0, 0), all_moves);
+        // cout << evaluate() << endl;
         print_board();
-        search(7);
-
-        clear_tt();
-
-        write_hash_entry(1, 30, hash_flag_beta);
-        int score = read_hash_entry(1, 19, 30);
-
-        // print score from hash entry
-        printf("%d\n", score);
-
     } else {
         // connect to the GUI
         uci_loop();

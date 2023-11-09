@@ -177,6 +177,8 @@ void uci_loop() {
         else if (strncmp(input, "ucinewgame", 10) == 0) {
             char position[] = "position startpos";
             parse_position(position);
+            // clear hash table
+            clear_tt();
         }
 
         // parse UCI "go" command

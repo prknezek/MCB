@@ -63,6 +63,39 @@ void enable_pv_scoring(moves *move_list) {
     7. Unsorted moves
 */
 
+// return the score of a move to be used for move ordering
+int score_move(int move) {
+    if (score_pv) {
+        if (pv_table[0][ply] == move) {
+            score_pv = 0;
+            return 20000;
+        }
+    }
+
+    int move_piece = board[get_move_start(move)];
+    int capture_piece = board[get_move_target(move)];
+
+    if (get_move_capture(move)) {
+
+        if (is_white_piece(capture_piece))
+           return 10 * piece_value[0][capture_piece - 1] - piece_value[1][move_piece - 7] + 10000;
+        else if (is_black_piece(capture_piece))
+            return 10 * piece_value[1][capture_piece - 7] - piece_value[0][move_piece - 1] + 10000;
+    } else {
+        if (killer_moves[0][ply] == move) {
+            return 9000;
+        }
+        // score 2nd killer move
+        else if (killer_moves[1][ply] == move) {
+            return 8000;
+        }
+        // score history move
+        else {
+           return history_moves[move_piece - 1][get_move_target(move)];
+        }
+    }
+}
+
 // order moves for a more efficient negamax function 
 void order_moves(moves *move_list) {
     // create a vector of pairs to store the move and its score
@@ -71,65 +104,7 @@ void order_moves(moves *move_list) {
     for (int i = 0; i < move_list->count; ++i) {
         int move = move_list->moves[i];
 
-        int move_score = 0;
-        int move_piece = board[get_move_start(move)];
-        int capture_piece = board[get_move_target(move)];
-
-        // if PV move scoring is allowed
-        if (score_pv) {
-            // make sure we are dealing with PV move
-            if (pv_table[0][ply] == move) {
-                // disable PV move scoring
-                score_pv = 0;
-
-                cout << "current PV move: " << get_move_string(move);
-                cout << "  ply: " << ply << endl; 
-
-                // score PV move
-                move_score += 20000;
-            }
-        } 
-        // capturing moves
-        else if (capture_piece != e) {
-            // MVV-LVA heuristic
-            // prioritize capturing opponent's most valuable piece with out least valuable piece
-            if (is_white_piece(capture_piece))
-                move_score = 10 * piece_value[0][capture_piece - 1] - piece_value[1][move_piece - 7] + 10000;
-            else if (is_black_piece(capture_piece))
-                move_score = 10 * piece_value[1][capture_piece - 7] - piece_value[0][move_piece - 1] + 10000;
-        
-            // penalize moving pieces to a square that's attacked by an opponent pawn
-            if (is_square_attacked_pawn(get_move_target(move), side ^ 1)) {
-                if (is_white_piece(move_piece)) {
-                    move_score -= piece_value[0][move_piece - 1];
-                } else {
-                    move_score -= piece_value[1][move_piece - 7];
-                }
-            }
-        }
-        // quiet moves
-        else if (capture_piece == e) {
-            // killer heuristic and history heuristic
-            // score 1st killer move
-            if (killer_moves[0][ply] == move) {
-                move_score += 9000;
-            }
-            // score 2nd killer move
-            else if (killer_moves[1][ply] == move) {
-                move_score += 8000;
-            }
-            // score history move
-            else {
-                move_score += history_moves[move_piece - 1][get_move_target(move)];
-            }
-        } 
-        // promoting a pawn is likely a good move
-        else if (get_promoted_piece(move) != e) {
-            if (is_white_piece(get_promoted_piece(move)))
-                move_score += piece_value[0][get_promoted_piece(move) - 1];
-            else
-                move_score -= piece_value[1][get_promoted_piece(move) - 7];
-        }
+        int move_score = score_move(move);
 
         // add the move and its score to the vector
         move_scores.push_back(make_pair(move, move_score));
@@ -148,6 +123,13 @@ void order_moves(moves *move_list) {
 
 // quiescence search
 int quiescence(int alpha, int beta) {
+    // increment nodes count
+    nodes++;
+
+    if (ply > max_ply - 1) {
+        return evaluate();
+    }
+
     // base case we evaluate final board position
     int eval = evaluate();
 
@@ -166,7 +148,10 @@ int quiescence(int alpha, int beta) {
 
     // order moves based on heuristics
     order_moves(move_list);
-    
+
+    // init legal moves for detecting checkmate or stalemate
+    int legal_moves = 0;
+
     // go through all possible moves
     for (int i = 0; i < move_list->count; i++) {
         // copy board state
@@ -182,6 +167,7 @@ int quiescence(int alpha, int beta) {
             // go to next loop iteration
             continue;
         }
+        legal_moves++;
 
         // score current move
         int score = -quiescence(-beta, -alpha);
@@ -191,29 +177,42 @@ int quiescence(int alpha, int beta) {
 
         // restore board position
         restore_board();
-    
-        // fail-hard beta cutoff
-        if (score >= beta) {
-            // node (move) fails high
-            return beta;
+
+        // found a better move
+        if (score > alpha) {
+            // PV node
+            alpha = score;
+            // fail-hard beta cutoff
+            if (score >= beta) {
+                // node (move) fails high
+                return beta;
+            }
         }
-        alpha = std::max(alpha, score);
     }
+
     // node (move) fails low
     return alpha;
 }
 
 // nega max function
 int nega_max(int depth, int alpha, int beta) {
-    // init PV length
-    pv_length[ply] = ply;
-
     // init score
     int score = 0;
 
+    // define hash flag
+    int hash_flag = hash_flag_alpha;
+
+    // read hash entry
+    if (ply && (score = read_hash_entry(depth, alpha, beta)) != no_hash_entry) {
+        // if the move has already been searched (has a value)
+        return score;
+    }
+
+    // init PV length
+    pv_length[ply] = ply;
+
     // base case we evaluate final board position
     if (depth == 0) {
-        nodes++;
         // run quiescence search to avoid horizon effect (capture of piece on next move)
         return quiescence(alpha, beta);
     }
@@ -222,17 +221,42 @@ int nega_max(int depth, int alpha, int beta) {
         return evaluate();
     }
 
+    // increment nodes count
+    nodes++;
+
+    // increase search depth if king is in check
+    if (in_check(side^1)) {
+        depth++;
+    }
+    // init legal moves for detecting checkmate or stalemate
+    int legal_moves = 0;
+
     // Null Move Pruning
     if (depth >= 3 && !in_check(side^1) && ply) {
         // copy board state
         copy_board();
-        // switch side to give opponent an extra (null) move
-        side ^= 1;
+
+        // increment ply
+        ply++;
+
+        // hash enpassant if available
+        if (enpassant != no_sq) {
+            hash_key ^= enpassant_keys[enpassant];
+        }
+
         // reset enpassant capture square
         enpassant = no_sq;
+        // switch side to give opponent an extra (null) move
+        side ^= 1;
+
+        // hash the side
+        hash_key ^= side_key;
 
         // search moves with reduced depth to find beta cutoffs
         score = -nega_max(depth - 1 - R, -beta, -beta + 1);
+
+        // decrement ply
+        ply--;
 
         // restore board state
         restore_board();
@@ -259,6 +283,8 @@ int nega_max(int depth, int alpha, int beta) {
     // number of moves searched in a move list
     int moves_searched = 0;
 
+    int move = 0;
+
     // go through all possible moves
     for (int i = 0; i < move_list->count; i++) {
         // copy board state
@@ -267,19 +293,16 @@ int nega_max(int depth, int alpha, int beta) {
         // increment ply
         ply++;
 
-        // init legal moves for detecting checkmate or stalemate
-        int legal_moves = move_list->count;
         // MAKE THE MOVE
         // if we make an illegal move skip it
-        if (!make_move(move_list->moves[i], all_moves)) {
+        if (make_move(move_list->moves[i], all_moves) == 0) {
             // decrement ply
             ply--;
-
-            legal_moves--;
+            // skip to the next move
             continue;
         }
-
-        nodes++;
+        move = move_list->moves[i];
+        legal_moves++;
 
         // Full depth search for first move
         if (moves_searched == 0) {
@@ -297,10 +320,9 @@ int nega_max(int depth, int alpha, int beta) {
             */
             if (moves_searched >= full_depth_moves &&
                 depth >= LMR_limit &&
-                !in_check(side^1) &&
+                in_check(side^1) == 0 &&
                 get_move_capture(move_list->moves[i]) == 0 &&
                 get_promoted_piece(move_list->moves[i]) == 0) {
-                
                 // search move with reduced depth
                 score = -nega_max(depth - 2, -alpha - 1, -alpha);
             } else {
@@ -310,10 +332,16 @@ int nega_max(int depth, int alpha, int beta) {
             // Principle Variation Search PVS
             if (score > alpha) {
                 // normal nega_max search with narrowed window
+                // cout << "PRINCIPLE VARIATION SEARCH ";
+                // cout << get_move_string(move_list->moves[i]) << endl;
                 score = -nega_max(depth - 1, -alpha - 1, -alpha);
+                // cout << "SCORE: " << score << endl;
                 // if LMR fails re-search at full depth and full window
-                if (score > alpha && score < beta)
+                if ((score > alpha) && (score < beta)) {
+                    // cout << "LMR Failed: " << get_move_string(move_list->moves[i]);
+                    // printf("Score: %d, Alpha: %d, Beta: %d\n\n", score, alpha, beta);
                     score = -nega_max(depth - 1, -beta, -alpha);
+                }
             }
         }
 
@@ -326,21 +354,10 @@ int nega_max(int depth, int alpha, int beta) {
         // increment the number of moves searched so far
         moves_searched++;
 
-        // fail-hard beta cutoff
-        if (score >= beta) {
-            // on quiet moves
-            if (get_move_capture(move_list->moves[i]) == 0) {
-                // store killer moves
-                // we store second killer first because it was killer move of previous iteration
-                killer_moves[1][ply] = killer_moves[0][ply];
-                killer_moves[0][ply] = move_list->moves[i];
-            }
-            // node (move) fails high
-            return beta;
-        }
-
         // found a better move
         if (score > alpha) {
+            // switch hash flag from storing score for fail-low to PV node
+            hash_flag = hash_flag_exact;
             // on quiet moves
             if (get_move_capture(move_list->moves[i]) == 0) {
                 int piece = board[get_move_start(move_list->moves[i])];
@@ -349,6 +366,8 @@ int nega_max(int depth, int alpha, int beta) {
             }
             // PV node (move)
             alpha = score;
+            // cout << "SETTING ALPHA TO SCORE BECAUSE BETTER MOVE: ";
+            get_move_string(move_list->moves[i]);
 
             // write PV move to PV table
             pv_table[ply][ply] = move_list->moves[i];
@@ -359,16 +378,37 @@ int nega_max(int depth, int alpha, int beta) {
             }
             // adjust PV length
             pv_length[ply] = pv_length[ply + 1];
-        }
 
-        // check for checkmate or stalemate
-        if (legal_moves == 0) {
-            if (in_check(side ^ 1)) {
-                return -CHECKMATE;
+            // fail-hard beta cutoff
+            if (score >= beta) {
+                // write hash entry
+                write_hash_entry(depth, beta, hash_flag_beta);
+                // on quiet moves
+                if (get_move_capture(move_list->moves[i]) == 0) {
+                    // store killer moves
+                    // we store second killer first because it was killer move of previous iteration
+                    killer_moves[1][ply] = killer_moves[0][ply];
+                    killer_moves[0][ply] = move_list->moves[i];
+                }
+                // node (move) fails high
+                // cout << "RETURNING BETA: " << beta << endl;
+                return beta;
             }
+        }
+    }
+
+    // check for checkmate or stalemate
+    if (legal_moves == 0) {
+        if (in_check(side ^ 1)) {
+            // cout << "CHECKMATE*************** RETURNING: " << -CHECKMATE + ply << endl;
+            return -CHECKMATE + ply;
+        } else {
             return 0;
         }
     }
+
+    // write hash entry
+    write_hash_entry(depth, alpha, hash_flag);
     // node (move) fails low
     return alpha;
 }
@@ -398,6 +438,7 @@ void search(int depth) {
         follow_pv = 1;
         // get best next move at current depth
         score = nega_max(current_depth, alpha, beta);
+        // cout << "SCORE: " << score << endl;
 
         // Aspiration Window
         // we fell outside the window so try again with full-width window
