@@ -202,8 +202,11 @@ int nega_max(int depth, int alpha, int beta) {
     // define hash flag
     int hash_flag = hash_flag_alpha;
 
+    // figure out if current node is PV node or not
+    int pv_node = beta - alpha > 1;
+
     // read hash entry
-    if (ply && (score = read_hash_entry(depth, alpha, beta)) != no_hash_entry) {
+    if (ply && (score = read_hash_entry(depth, alpha, beta, ply)) != no_hash_entry && !pv_node) {
         // if the move has already been searched (has a value)
         return score;
     }
@@ -382,7 +385,7 @@ int nega_max(int depth, int alpha, int beta) {
             // fail-hard beta cutoff
             if (score >= beta) {
                 // write hash entry
-                write_hash_entry(depth, beta, hash_flag_beta);
+                write_hash_entry(depth, beta, hash_flag_beta, ply);
                 // on quiet moves
                 if (get_move_capture(move_list->moves[i]) == 0) {
                     // store killer moves
@@ -401,14 +404,14 @@ int nega_max(int depth, int alpha, int beta) {
     if (legal_moves == 0) {
         if (in_check(side ^ 1)) {
             // cout << "CHECKMATE*************** RETURNING: " << -CHECKMATE + ply << endl;
-            return -CHECKMATE + ply;
+            return -MATE_VALUE + ply;
         } else {
             return 0;
         }
     }
 
     // write hash entry
-    write_hash_entry(depth, alpha, hash_flag);
+    write_hash_entry(depth, alpha, hash_flag, ply);
     // node (move) fails low
     return alpha;
 }
@@ -428,12 +431,11 @@ void search(int depth) {
     memset(pv_table, 0, sizeof(pv_table));
     memset(pv_length, 0, sizeof(pv_length));
 
-    int alpha = -50000;
-    int beta = 50000;
+    int alpha = -INF;
+    int beta = INF;
 
     // iterative deepening
-    int current_depth = 1;
-    while (current_depth <= depth) {
+    for (int current_depth = 1; current_depth <= depth; current_depth++) {
         // enable follow PV flag
         follow_pv = 1;
         // get best next move at current depth
@@ -442,21 +444,25 @@ void search(int depth) {
 
         // Aspiration Window
         // we fell outside the window so try again with full-width window
-        if ((score <= -50000) || (score >= 50000)) {
-            alpha = -50000;
-            beta = 50000;
-            current_depth--;
+        if ((score <= alpha) || (score >= beta)) {
+            alpha = -INF;
+            beta = INF;
             continue;
         }
         // set up the window for the next iteration
         alpha = score - 50;
         beta = score + 50;
 
-        cout << "\nDepth: " << current_depth << "   ";
-        cout << "Score: " << score << "   ";
-        cout << "Nodes: " << nodes << endl;
+        if (score > -MATE_VALUE && score < -MATE_SCORE)
+            printf("info score mate %d depth %d nodes %ld", -(score + MATE_VALUE) / 2 - 1, current_depth, nodes);
+        
+        else if (score > MATE_SCORE && score < MATE_VALUE)
+            printf("info score mate %d depth %d nodes %ld", (MATE_VALUE - score) / 2 + 1, current_depth, nodes);   
+        
+        else
+            printf("info score cp %d depth %d nodes %ld", score, current_depth, nodes);
 
-        cout << "PV Line " << pv_length[0] << ": ";
+        cout << "\nPV Line " << pv_length[0] << ": ";
         for (int i = 0; i < pv_length[0]; ++i) {
             int move = pv_table[0][i];
             cout << square_to_coords[get_move_start(move)] << square_to_coords[get_move_target(move)] << promoted_pieces[get_promoted_piece(move)];

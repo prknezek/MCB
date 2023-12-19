@@ -171,6 +171,8 @@ void uci_loop() {
         // parse UCI "position" command
         else if (strncmp(input, "position", 8) == 0) {
             parse_position(input);
+            // clear hash table
+            clear_tt();
         }
 
         // parse UCI "ucinewgame" command

@@ -86,7 +86,9 @@ int piece_value[2][6] = { 82, 337, 365, 477, 1025, 12000,
                           94, 281, 297, 512,  936, 12000};
 
 // move generation variables
-int CHECKMATE = 50000;
+int INF = 50000;
+int MATE_VALUE = 49000;
+int MATE_SCORE = 48000;
 int NEXT_MOVE = 0;
 int nodes = 0;
 

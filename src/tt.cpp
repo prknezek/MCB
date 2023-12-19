@@ -40,7 +40,7 @@ void clear_tt() {
 }
 
 // read hash entry data
-int read_hash_entry(int depth, int alpha, int beta) {
+int read_hash_entry(int depth, int alpha, int beta, int ply) {
     // create a TT instance pointer to point to the hash entry
     // responsible for storing particular hash entry storing the data
     tt *hash_entry = &transposition_table[hash_key % hash_size];
@@ -49,6 +49,13 @@ int read_hash_entry(int depth, int alpha, int beta) {
     if (hash_entry->hash_key == hash_key) {
         // make sure we're dealing with the correct depth
         if (hash_entry->depth >= depth) {
+            int score = hash_entry->eval;
+
+            // retrieve score independent from the actual path
+            // from the root node (position) to current node
+            if (score < -MATE_SCORE) score += ply;
+            if (score > MATE_SCORE) score -= ply;
+
             // match the exact (PV node) score
             if (hash_entry->flag == hash_flag_exact) {
                 // return the exact score
@@ -71,10 +78,13 @@ int read_hash_entry(int depth, int alpha, int beta) {
 }
 
 // write hash entry data
-void write_hash_entry(int depth, int eval, int flag) {
+void write_hash_entry(int depth, int eval, int flag, int ply) {
     // create a TT instance pointer to point to the hash entry
     // responsible for storing particular hash entry storing the data
     tt *hash_entry = &transposition_table[hash_key % hash_size];
+
+    if (eval < -MATE_SCORE) eval -= ply;
+    if (eval > MATE_SCORE) eval += ply;
 
     // update hash entry data
     hash_entry->hash_key = hash_key;

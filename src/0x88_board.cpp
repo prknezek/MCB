@@ -68,7 +68,7 @@ int main() {
         char fen2[] = "r1bq1rk1/pppp1ppp/5n2/4Q3/2B5/2N5/PPP2PPP/R1B1K2R b KQ - 1 10";
         char checkmate[] = "4k3/Q7/8/4K3/8/8/8/8 w - - 1 10";
         parse_fen(start_position);
-
+        search(10);
         // make_move(encode_move(d8, e8, 0, 0, 0, 0, 0), all_moves);
         // cout << evaluate() << endl;
         print_board();

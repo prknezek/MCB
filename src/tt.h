@@ -26,7 +26,7 @@ void init_random_keys();
 uint64_t generate_zobrist_key();
 
 void clear_tt();
-int read_hash_entry(int depth, int alpha, int beta);
-void write_hash_entry(int depth, int eval, int flag);
+int read_hash_entry(int depth, int alpha, int beta, int ply);
+void write_hash_entry(int depth, int eval, int flag, int ply);
 
 #endif
