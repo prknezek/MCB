@@ -60,15 +60,17 @@ void init_all() {
 int main() {
     init_all();
 
-    int debug = 0;
+    int debug = 1;
 
     if (debug) {
         // parse fen string
         // char fen[] = "r1k5/P7/5p2/7p/4p3/R3K2P/5PP1/8 b - - 0 45";
         char fen2[] = "r1bq1rk1/pppp1ppp/5n2/4Q3/2B5/2N5/PPP2PPP/R1B1K2R b KQ - 1 10";
         char checkmate[] = "4k3/Q7/8/4K3/8/8/8/8 w - - 1 10";
-        parse_fen(start_position);
-        search(10);
+        char repetition[] = "4rrk1/p6p/6p1/5B2/2Q5/P3PK2/2P2P2/7R b - - 3 29";
+        parse_fen(repetition);
+
+        search(8);
         // make_move(encode_move(d8, e8, 0, 0, 0, 0, 0), all_moves);
         // cout << evaluate() << endl;
         print_board();

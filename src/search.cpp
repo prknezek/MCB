@@ -34,6 +34,11 @@ int follow_pv, score_pv;
 int full_depth_moves = 4;
 int LMR_limit = 3;
 
+// position repetition table
+uint64_t repetition_table[150];
+// repetition index
+int repetition_index;
+
 // enable PV move scoring
 void enable_pv_scoring(moves *move_list) {
     // disable following PV line
@@ -121,6 +126,20 @@ void order_moves(moves *move_list) {
     }
 }
 
+// repetition detection
+int is_repetition() {
+    // loop over repetition indices range
+    for (int i = 0; i < repetition_index; ++i) {
+        // if same hash key in repetition table       
+        if (repetition_table[i] == hash_key) {
+            // we found a repetition
+            return 1;
+        }
+    }
+    // if no repetition found
+    return 0;
+}
+
 // quiescence search
 int quiescence(int alpha, int beta) {
     // increment nodes count
@@ -160,10 +179,18 @@ int quiescence(int alpha, int beta) {
         // increment ply
         ply++;
 
+        // increment index and store hash key
+        repetition_index++;
+        repetition_table[repetition_index] = hash_key;
+
         // if we make an illegal move skip it
         if (!make_move(move_list->moves[i], only_captures)) {
             // decrement ply
             ply--;
+
+            // decrement repetition index
+            repetition_index--;
+
             // go to next loop iteration
             continue;
         }
@@ -174,6 +201,9 @@ int quiescence(int alpha, int beta) {
         
         // decrement ply
         ply--;
+
+        // decrement repetition index
+        repetition_index--;
 
         // restore board position
         restore_board();
@@ -201,6 +231,11 @@ int nega_max(int depth, int alpha, int beta) {
 
     // define hash flag
     int hash_flag = hash_flag_alpha;
+
+    // repetition detection
+    if (ply && is_repetition())
+    // return a draw score (0)
+        return 0;
 
     // figure out if current node is PV node or not
     int pv_node = beta - alpha > 1;
@@ -242,6 +277,10 @@ int nega_max(int depth, int alpha, int beta) {
         // increment ply
         ply++;
 
+        // increment index and store hash key
+        repetition_index++;
+        repetition_table[repetition_index] = hash_key;
+
         // hash enpassant if available
         if (enpassant != no_sq) {
             hash_key ^= enpassant_keys[enpassant];
@@ -260,6 +299,9 @@ int nega_max(int depth, int alpha, int beta) {
 
         // decrement ply
         ply--;
+
+        // decrement repetition index
+        repetition_index--;
 
         // restore board state
         restore_board();
@@ -296,11 +338,17 @@ int nega_max(int depth, int alpha, int beta) {
         // increment ply
         ply++;
 
+        // increment index and store hash key
+        repetition_index++;
+        repetition_table[repetition_index] = hash_key;
+
         // MAKE THE MOVE
         // if we make an illegal move skip it
         if (make_move(move_list->moves[i], all_moves) == 0) {
             // decrement ply
             ply--;
+            // decrement repetition index
+            repetition_index--;
             // skip to the next move
             continue;
         }
@@ -350,6 +398,9 @@ int nega_max(int depth, int alpha, int beta) {
 
         // decrement ply
         ply--;
+
+        // decrement repetition index
+        repetition_index--;
 
         // restore board state
         restore_board();
@@ -440,7 +491,6 @@ void search(int depth) {
         follow_pv = 1;
         // get best next move at current depth
         score = nega_max(current_depth, alpha, beta);
-        // cout << "SCORE: " << score << endl;
 
         // Aspiration Window
         // we fell outside the window so try again with full-width window
@@ -469,9 +519,6 @@ void search(int depth) {
             cout << " ";
         }
         cout << endl;
-
-        // increment current depth
-        current_depth++;
     }
     
     NEXT_MOVE = pv_table[0][0];

@@ -15,6 +15,7 @@ extern int LMR_limit;
 void copy_board_state();
 void restore_board_state();
 
+int is_repetition();
 void order_moves(moves *move_list);
 int nega_max(int depth, int alpha, int beta);
 void search(int depth);
