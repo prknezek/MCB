@@ -35,7 +35,7 @@ int full_depth_moves = 4;
 int LMR_limit = 3;
 
 // position repetition table
-uint64_t repetition_table[150];
+uint64_t repetition_table[1000]; // 1000 is a number of plies in the entire game
 // repetition index
 int repetition_index;
 

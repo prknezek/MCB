@@ -1,5 +1,6 @@
 #include "chess_utils.h"
 #include "tt.h"
+#include "search.h"
 
 #include <chrono>
 #include <string.h>
@@ -264,6 +265,11 @@ void reset_board() {
     side = -1;
     castle = 0;
     enpassant = no_sq;
+
+    // reset repetition index
+    repetition_index = 0;
+    // reset repetition table
+    memset(repetition_table, 0ULL, sizeof(repetition_table));
 }
 
 // parse FEN

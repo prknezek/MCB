@@ -99,6 +99,12 @@ void parse_position(char *command) {
             if (move == 0) {
                 break;
             }
+
+            // increment repetition index
+            repetition_index++;
+            printf("REPETITION INDEX: %d", repetition_index);
+            // write hash key into a repetition table
+            repetition_table[repetition_index] = hash_key;
             // make move
             make_move(move, all_moves);
             // move current character pointer to end of current move

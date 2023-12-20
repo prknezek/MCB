@@ -11,6 +11,8 @@ extern int pv_length[64];
 extern int pv_table[64][64];
 extern int full_depth_moves;
 extern int LMR_limit;
+extern int repetition_index;
+extern uint64_t repetition_table[1000];
 
 void copy_board_state();
 void restore_board_state();
