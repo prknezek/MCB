@@ -4,3 +4,5 @@ MCB (My Chess Bot) is my first attempt at creating a chess bot in C++ using up-t
 This bot follows the "0x88 MOVE GENERATOR (Wukong)" tutorial series made by <a href="https://www.youtube.com/@chessprogramming591">Chess Programming</a>.
 
 Since 10/18/2023 the tutorial has been completed.
+
+The bot currently has an estimated ELO of 1830
